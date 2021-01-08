@@ -3,7 +3,8 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    this->setMinimumSize(100, 100);
+    this->setAttribute(Qt::WA_AcceptTouchEvents, true);
+    this->setMinimumSize(300, 300);
     this->setUnifiedTitleAndToolBarOnMac(true);
 
     // TextEdit
@@ -24,6 +25,9 @@ MainWindow::MainWindow(QWidget *parent)
     toolbar->setMovable(false);
     toolbar->setAllowedAreas(Qt::ToolBarArea::TopToolBarArea);
     toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
+    toolbar->setStyleSheet("border-style: none;"
+                           "background-color: #363636;"
+                           "color: #FFFFFF;");
 
     QAction *open = new QAction(tr("Open"), this);
     open->setShortcut(QKeySequence::Open);
@@ -40,19 +44,23 @@ MainWindow::MainWindow(QWidget *parent)
     connect(saveas, &QAction::triggered, this, &MainWindow::saveas);
     toolbar->addAction(saveas);
 
-    statisticsLabel = new QLabel("stats...");
+    QAction *find = new QAction(tr("Find"), this);
+    find->setShortcut(QKeySequence::Find);
+    connect(find, &QAction::triggered, this, &MainWindow::find);
+    toolbar->addAction(find);
+
+    statisticsLabel = new QLabel("*stats...*");
     statisticsLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     statisticsLabel->setAlignment(Qt::AlignCenter);
+    statisticsLabel->setTextFormat(Qt::TextFormat::MarkdownText);
+    statisticsLabel->setStyleSheet("color: #C0C0C0");
+    statisticsLabel->setContentsMargins(20, 5, 20, 5);
     toolbar->addWidget(statisticsLabel);
 
     QAction *options = new QAction(tr("Options"), this);
     connect(options, &QAction::triggered, this, &MainWindow::selectFont);
     toolbar->addAction(options);
     toolbar->addAction(options);
-
-    toolbar->setStyleSheet("border-style: none;"
-                           "background-color: #363636;"
-                           "color: #FFFFFF;");
 
     this->addToolBar(toolbar);
 }
@@ -61,6 +69,31 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::closeEvent(QCloseEvent *event) {
     writeSettings();
     event->accept();
+}
+
+
+bool MainWindow::event(QEvent *event) {
+    switch(event->type()) {
+    case QEvent::TouchBegin:
+    case QEvent::TouchUpdate:
+    case QEvent::TouchEnd: {
+        QTouchEvent *touchEvent = static_cast<QTouchEvent*>(event);
+        int numberTouchPoints = touchEvent->touchPoints().count();
+
+        if(numberTouchPoints == 3) {
+            textedit->undo();
+        } else if(numberTouchPoints == 4) {
+            textedit->redo();
+        } else {
+            return QMainWindow::event(event);
+        }
+
+        statisticsLabel->setText(QString(numberTouchPoints));
+        return true;
+    }
+    default:
+        return QMainWindow::event(event);
+    }
 }
 
 
@@ -131,6 +164,10 @@ void MainWindow::saveToDisk(QString &filename) {
     out << text;
     file.flush();
     file.close();
+}
+
+
+void MainWindow::find() {
 }
 
 

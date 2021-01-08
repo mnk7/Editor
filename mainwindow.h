@@ -23,6 +23,7 @@ public:
 
 protected:
     void closeEvent(QCloseEvent *event);
+    bool event(QEvent *event);
 
 private:
     QToolBar *toolbar;
@@ -36,6 +37,7 @@ private:
     void open();
     void save();
     void saveas();
+    void find();
     void saveToDisk(QString &filename);
     void selectFont();
 };
