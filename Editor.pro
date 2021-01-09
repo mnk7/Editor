@@ -10,13 +10,16 @@ CONFIG += c++11
 
 SOURCES += \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    texteditor.cpp
 
 HEADERS += \
-    mainwindow.h
+    mainwindow.h \
+    texteditor.h
 
 TRANSLATIONS += \
-    Editor_de_DE.ts
+    Editor_de_DE.ts \
+    Editor_en_EN.ts
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
@@ -24,3 +27,7 @@ else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
 
 FORMS +=
+
+DISTFILES += \
+    Editor_de_DE.qm \
+    Editor_en_EN.qm

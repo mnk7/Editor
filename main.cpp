@@ -1,7 +1,6 @@
 #include "mainwindow.h"
 
 #include <QApplication>
-#include <QTranslator>
 
 int main(int argc, char *argv[])
 {
@@ -10,10 +9,6 @@ int main(int argc, char *argv[])
 #endif
 
     QApplication a(argc, argv);
-
-    QTranslator myappTranslator;
-    myappTranslator.load(QLocale(), QLatin1String("Editor"), QLatin1String("_"), QLatin1String(":/i18n"));
-    a.installTranslator(&myappTranslator);
 
     MainWindow w;
     w.show();

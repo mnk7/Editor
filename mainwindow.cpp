@@ -3,18 +3,20 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    this->setAttribute(Qt::WA_AcceptTouchEvents, true);
-    this->setMinimumSize(300, 300);
+    this->setAttribute(Qt::WA_AcceptTouchEvents);
+    this->setMinimumSize(450, 300);
     this->setUnifiedTitleAndToolBarOnMac(true);
 
-    // TextEdit
-    textedit = new QPlainTextEdit(this);
-    textedit->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
-    textedit->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    textedit->setStyleSheet("border-style: none;"
-                            "background-color: #363636;"
-                            "color: #FFFFFF;");
+    textwidth = 80;
 
+    // install translator
+    translator = new QTranslator();
+    locale = QLocale::system().name();
+    translator->load("Editor_" + locale + ".qm");
+    QApplication::installTranslator(translator);
+
+    // TextEdit
+    textedit = new TextEditor(this);
     this->setCentralWidget(textedit);
 
     // ToolBar
@@ -25,44 +27,42 @@ MainWindow::MainWindow(QWidget *parent)
     toolbar->setMovable(false);
     toolbar->setAllowedAreas(Qt::ToolBarArea::TopToolBarArea);
     toolbar->setContextMenuPolicy(Qt::PreventContextMenu);
-    toolbar->setStyleSheet("border-style: none;"
-                           "background-color: #363636;"
-                           "color: #FFFFFF;");
 
-    QAction *open = new QAction(tr("Open"), this);
-    open->setShortcut(QKeySequence::Open);
-    connect(open, &QAction::triggered, this, &MainWindow::open);
-    toolbar->addAction(open);
+    openAction = new QAction(this);
+    openAction->setShortcut(QKeySequence::Open);
+    connect(openAction, &QAction::triggered, this, &MainWindow::open);
+    toolbar->addAction(openAction);
 
-    QAction *save = new QAction(tr("Save"), this);
-    save->setShortcut(QKeySequence::Save);
-    connect(save, &QAction::triggered, this, &MainWindow::save);
-    toolbar->addAction(save);
+    saveAction = new QAction(this);
+    saveAction->setShortcut(QKeySequence::Save);
+    connect(saveAction, &QAction::triggered, this, &MainWindow::save);
+    toolbar->addAction(saveAction);
 
-    QAction *saveas = new QAction(tr("Save as"), this);
-    saveas->setShortcut(QKeySequence::SaveAs);
-    connect(saveas, &QAction::triggered, this, &MainWindow::saveas);
-    toolbar->addAction(saveas);
+    saveasAction = new QAction(this);
+    saveasAction->setShortcut(QKeySequence::SaveAs);
+    connect(saveasAction, &QAction::triggered, this, &MainWindow::saveas);
+    toolbar->addAction(saveasAction);
 
-    QAction *find = new QAction(tr("Find"), this);
-    find->setShortcut(QKeySequence::Find);
-    connect(find, &QAction::triggered, this, &MainWindow::find);
-    toolbar->addAction(find);
+    findAction = new QAction(this);
+    findAction->setShortcut(QKeySequence::Find);
+    connect(findAction, &QAction::triggered, this, &MainWindow::find);
+    toolbar->addAction(findAction);
 
     statisticsLabel = new QLabel("*stats...*");
     statisticsLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    statisticsLabel->setAlignment(Qt::AlignCenter);
+    statisticsLabel->setAlignment(Qt::AlignRight);
     statisticsLabel->setTextFormat(Qt::TextFormat::MarkdownText);
-    statisticsLabel->setStyleSheet("color: #C0C0C0");
     statisticsLabel->setContentsMargins(20, 5, 20, 5);
     toolbar->addWidget(statisticsLabel);
 
-    QAction *options = new QAction(tr("Options"), this);
-    connect(options, &QAction::triggered, this, &MainWindow::selectFont);
-    toolbar->addAction(options);
-    toolbar->addAction(options);
+    optionsAction = new QAction(this);
+    connect(optionsAction, &QAction::triggered, this, &MainWindow::selectFont);
+    toolbar->addAction(optionsAction);
 
     this->addToolBar(toolbar);
+
+    this->retranslate();
+    this->setDarkTheme();
 }
 
 
@@ -94,6 +94,15 @@ bool MainWindow::event(QEvent *event) {
     default:
         return QMainWindow::event(event);
     }
+}
+
+
+void MainWindow::changeEvent(QEvent *event) {
+    if(event->type() == QEvent::LanguageChange) {
+        this->retranslate();
+    }
+
+    QMainWindow::changeEvent(event);
 }
 
 
@@ -171,13 +180,134 @@ void MainWindow::find() {
 }
 
 
+void MainWindow::selectLanguage(QString locale) {
+    QApplication::removeTranslator(translator);
+    translator->load("Editor_" + locale + ".qm");
+    QApplication::installTranslator(translator);
+
+    this->locale = locale;
+}
+
+
+void MainWindow::retranslate() {
+    openAction->setText(tr("Open"));
+    saveAction->setText(tr("Save"));
+    saveasAction->setText(tr("Save as"));
+    findAction->setText(tr("Find"));
+    optionsAction->setText(tr("Options"));
+}
+
+
 void MainWindow::selectFont() {
     bool fontSelected;
-    QFont font = QFontDialog::getFont(&fontSelected, this);
+    QFont font = QFontDialog::getFont(&fontSelected, textedit->font(), this, tr("Select Font"));
 
     if (fontSelected) {
         textedit->setFont(font);
     }
+
+
+    if(locale.endsWith("de_DE")) {
+        selectLanguage("en_EN");
+        qDebug("Englisch");
+    } else {
+        selectLanguage("de_DE");
+    }
+}
+
+
+void MainWindow::setDarkTheme() {
+    this->setStyleSheet(
+        "QWidget { \
+            background-color: #363636; \
+            color: #FFFFFF; \
+        } \
+        QPlainTextEdit { \
+            border-style: none; \
+            selection-color: #000000; \
+            selection-background-color: #CCB026; \
+        } \
+        QLabel { \
+            border-style: none; \
+            color: #C0C0C0 \
+        } \
+        QToolButton:hover { \
+            background-color: #363636; \
+            border-style: none; \
+        } \
+        QToolBar { \
+            border-style: none; \
+        } \
+        QScrollBar:vertical { \
+            width: 8px; \
+            border-style: none; \
+        } \
+        QScrollBar:handle:vertical { \
+            background-color: #C0C0C0; \
+            border-radius: 4px; \
+        } \
+        QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical { \
+            background: none; \
+        } \
+        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { \
+            background: none; \
+        } \
+        QScrollBar::add-line { \
+            border: none; \
+            background: none; \
+        } \
+        QScrollBar::sub-line { \
+            border: none; \
+            background: none; \
+        }"
+    );
+}
+
+
+void MainWindow::setLightTheme() {
+    this->setStyleSheet(
+        "QWidget { \
+            background-color: #FFFFFF; \
+            color: #000000; \
+        } \
+        QPlainTextEdit { \
+            border-style: none; \
+            selection-color: #FFFFFF; \
+            selection-background-color: #9226CC; \
+        } \
+        QLabel { \
+            color: #A0A0A0 \
+        } \
+        QToolButton:hover { \
+            background-color: #FFFFFF; \
+            border-style: none; \
+        } \
+        QToolBar { \
+            border-style: none; \
+        } \
+        QScrollBar:vertical { \
+            width: 8px; \
+            border-style: none; \
+        } \
+        QScrollBar:handle:vertical { \
+            background-color: #A0A0A0; \
+            border-radius: 4px; \
+        } \
+        QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical { \
+            background: none; \
+        } \
+        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { \
+            background: none; \
+        } \
+        QScrollBar::add-line { \
+            border: none; \
+            background: none; \
+        } \
+        QScrollBar::sub-line { \
+            border: none; \
+            background: none; \
+        }"
+    );
 }
 
 

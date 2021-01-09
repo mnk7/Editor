@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE TS>
-<TS version="2.1" language="de_DE" sourcelanguage="en">
+<TS version="2.1" language="en" sourcelanguage="en">
 <context>
     <name>MainWindow</name>
     <message>
         <source>Open</source>
-        <translation>Öffnen</translation>
+        <translation>Open</translation>
     </message>
     <message>
         <source>Save</source>
-        <translation>Sichern</translation>
+        <translation>Save</translation>
     </message>
     <message>
         <source>Save As</source>
@@ -17,31 +17,31 @@
     </message>
     <message>
         <source>Options</source>
-        <translation>Optionen</translation>
+        <translation>Options</translation>
     </message>
     <message>
         <source>Warning</source>
-        <translation>Warnung</translation>
+        <translation>Warning</translation>
     </message>
     <message>
         <source>Cannot open file: </source>
-        <translation>Konnte Datei nicht öffnen: </translation>
+        <translation>Cannot open file: </translation>
     </message>
     <message>
         <source>Cannot save file: </source>
-        <translation>Konnte Datei nicht speichern: </translation>
+        <translation>Cannot save file: </translation>
     </message>
     <message>
         <source>Save as</source>
-        <translation>Sichern als</translation>
+        <translation>Save as</translation>
     </message>
     <message>
         <source>Find</source>
-        <translation>Finde</translation>
+        <translation>Find</translation>
     </message>
     <message>
         <source>Select Font</source>
-        <translation>Wähle Schriftart</translation>
+        <translation>Select Font</translation>
     </message>
 </context>
 </TS>
