@@ -9,12 +9,16 @@ CONFIG += c++11
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    finddock.cpp \
     main.cpp \
     mainwindow.cpp \
+    mdhighlighter.cpp \
     texteditor.cpp
 
 HEADERS += \
+    finddock.h \
     mainwindow.h \
+    mdhighlighter.h \
     texteditor.h
 
 TRANSLATIONS += \
@@ -30,4 +34,12 @@ FORMS +=
 
 DISTFILES += \
     Editor_de_DE.qm \
-    Editor_en_EN.qm
+    Editor_en_EN.qm \
+    Icon.png \
+    dark_style.qss \
+    light_style.qss
+
+RESOURCES += \
+    Editor.qrc
+
+ICON = Icon.png

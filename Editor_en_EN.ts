@@ -2,6 +2,21 @@
 <!DOCTYPE TS>
 <TS version="2.1" language="en" sourcelanguage="en">
 <context>
+    <name>FindDock</name>
+    <message>
+        <source>find:</source>
+        <translation>find:</translation>
+    </message>
+    <message>
+        <source>replace with:</source>
+        <translation>replace with:</translation>
+    </message>
+    <message>
+        <source>replace all</source>
+        <translation>replace all</translation>
+    </message>
+</context>
+<context>
     <name>MainWindow</name>
     <message>
         <source>Open</source>
@@ -42,6 +57,14 @@
     <message>
         <source>Select Font</source>
         <translation>Select Font</translation>
+    </message>
+    <message>
+        <source>Undo</source>
+        <translation>Undo</translation>
+    </message>
+    <message>
+        <source>Redo</source>
+        <translation>Redo</translation>
     </message>
 </context>
 </TS>

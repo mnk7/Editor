@@ -15,6 +15,7 @@
 #include <QFontDialog>
 
 #include "texteditor.h"
+#include "finddock.h"
 
 class MainWindow : public QMainWindow
 {
@@ -26,20 +27,23 @@ public:
 
 protected:
     void closeEvent(QCloseEvent *event);
-    bool event(QEvent *event);
     void changeEvent(QEvent *event);
 
 private:
     QTranslator *translator;
+
+    TextEditor *textEdit;
+    FindDock *findDock;
 
     QToolBar *toolbar;
     QAction *openAction;
     QAction *saveAction;
     QAction *saveasAction;
     QAction *findAction;
+    QAction *undoAction;
+    QAction *redoAction;
     QLabel *statisticsLabel;
     QAction *optionsAction;
-    TextEditor *textedit;
 
     QString currentFile;
 

@@ -3,9 +3,9 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    this->setAttribute(Qt::WA_AcceptTouchEvents);
-    this->setMinimumSize(450, 300);
+    this->setMinimumSize(500, 300);
     this->setUnifiedTitleAndToolBarOnMac(true);
+    this->grabGesture(Qt::PanGesture);
 
     textwidth = 80;
 
@@ -16,8 +16,13 @@ MainWindow::MainWindow(QWidget *parent)
     QApplication::installTranslator(translator);
 
     // TextEdit
-    textedit = new TextEditor(this);
-    this->setCentralWidget(textedit);
+    textEdit = new TextEditor(this);
+    this->setCentralWidget(textEdit);
+
+    // FindDock
+    findDock = new FindDock(this);
+    this->addDockWidget(Qt::TopDockWidgetArea, findDock);
+    findDock->setVisible(false);
 
     // ToolBar
     toolbar = new QToolBar(this);
@@ -48,6 +53,16 @@ MainWindow::MainWindow(QWidget *parent)
     connect(findAction, &QAction::triggered, this, &MainWindow::find);
     toolbar->addAction(findAction);
 
+    undoAction = new QAction(this);
+    undoAction->setShortcut(QKeySequence::Undo);
+    connect(undoAction, &QAction::triggered, textEdit, &TextEditor::undo);
+    toolbar->addAction(undoAction);
+
+    redoAction = new QAction(this);
+    redoAction->setShortcut(QKeySequence::Redo);
+    connect(redoAction, &QAction::triggered, textEdit, &TextEditor::redo);
+    toolbar->addAction(redoAction);
+
     statisticsLabel = new QLabel("*stats...*");
     statisticsLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     statisticsLabel->setAlignment(Qt::AlignRight);
@@ -69,31 +84,6 @@ MainWindow::MainWindow(QWidget *parent)
 void MainWindow::closeEvent(QCloseEvent *event) {
     writeSettings();
     event->accept();
-}
-
-
-bool MainWindow::event(QEvent *event) {
-    switch(event->type()) {
-    case QEvent::TouchBegin:
-    case QEvent::TouchUpdate:
-    case QEvent::TouchEnd: {
-        QTouchEvent *touchEvent = static_cast<QTouchEvent*>(event);
-        int numberTouchPoints = touchEvent->touchPoints().count();
-
-        if(numberTouchPoints == 3) {
-            textedit->undo();
-        } else if(numberTouchPoints == 4) {
-            textedit->redo();
-        } else {
-            return QMainWindow::event(event);
-        }
-
-        statisticsLabel->setText(QString(numberTouchPoints));
-        return true;
-    }
-    default:
-        return QMainWindow::event(event);
-    }
 }
 
 
@@ -138,7 +128,7 @@ void MainWindow::open() {
 
     this->setWindowTitle(QFileInfo(currentFile).fileName());
     QTextStream in(&file);
-    textedit->setPlainText(in.readAll());
+    textEdit->setPlainText(in.readAll());
 
     file.close();
 }
@@ -169,7 +159,7 @@ void MainWindow::saveToDisk(QString &filename) {
 
     this->setWindowTitle(QFileInfo(filename).fileName());
     QTextStream out(&file);
-    QString text = textedit->toPlainText();
+    QString text = textEdit->toPlainText();
     out << text;
     file.flush();
     file.close();
@@ -177,12 +167,13 @@ void MainWindow::saveToDisk(QString &filename) {
 
 
 void MainWindow::find() {
+    findDock->setVisible(!findDock->isVisible());
 }
 
 
 void MainWindow::selectLanguage(QString locale) {
     QApplication::removeTranslator(translator);
-    translator->load("Editor_" + locale + ".qm");
+    translator->load(":translations/Editor_" + locale + ".qm");
     QApplication::installTranslator(translator);
 
     this->locale = locale;
@@ -194,16 +185,20 @@ void MainWindow::retranslate() {
     saveAction->setText(tr("Save"));
     saveasAction->setText(tr("Save as"));
     findAction->setText(tr("Find"));
+    undoAction->setText(tr("Undo"));
+    redoAction->setText(tr("Redo"));
     optionsAction->setText(tr("Options"));
+
+    findDock->retranslate();
 }
 
 
 void MainWindow::selectFont() {
     bool fontSelected;
-    QFont font = QFontDialog::getFont(&fontSelected, textedit->font(), this, tr("Select Font"));
+    QFont font = QFontDialog::getFont(&fontSelected, textEdit->font(), this, tr("Select Font"));
 
     if (fontSelected) {
-        textedit->setFont(font);
+        textEdit->setFont(font);
     }
 
 
@@ -217,97 +212,16 @@ void MainWindow::selectFont() {
 
 
 void MainWindow::setDarkTheme() {
-    this->setStyleSheet(
-        "QWidget { \
-            background-color: #363636; \
-            color: #FFFFFF; \
-        } \
-        QPlainTextEdit { \
-            border-style: none; \
-            selection-color: #000000; \
-            selection-background-color: #CCB026; \
-        } \
-        QLabel { \
-            border-style: none; \
-            color: #C0C0C0 \
-        } \
-        QToolButton:hover { \
-            background-color: #363636; \
-            border-style: none; \
-        } \
-        QToolBar { \
-            border-style: none; \
-        } \
-        QScrollBar:vertical { \
-            width: 8px; \
-            border-style: none; \
-        } \
-        QScrollBar:handle:vertical { \
-            background-color: #C0C0C0; \
-            border-radius: 4px; \
-        } \
-        QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical { \
-            background: none; \
-        } \
-        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { \
-            background: none; \
-        } \
-        QScrollBar::add-line { \
-            border: none; \
-            background: none; \
-        } \
-        QScrollBar::sub-line { \
-            border: none; \
-            background: none; \
-        }"
-    );
+    QFile style(":/styles/dark_style.qss");
+    style.open(QFile::ReadOnly);
+    this->setStyleSheet(style.readAll());
 }
 
 
 void MainWindow::setLightTheme() {
-    this->setStyleSheet(
-        "QWidget { \
-            background-color: #FFFFFF; \
-            color: #000000; \
-        } \
-        QPlainTextEdit { \
-            border-style: none; \
-            selection-color: #FFFFFF; \
-            selection-background-color: #9226CC; \
-        } \
-        QLabel { \
-            color: #A0A0A0 \
-        } \
-        QToolButton:hover { \
-            background-color: #FFFFFF; \
-            border-style: none; \
-        } \
-        QToolBar { \
-            border-style: none; \
-        } \
-        QScrollBar:vertical { \
-            width: 8px; \
-            border-style: none; \
-        } \
-        QScrollBar:handle:vertical { \
-            background-color: #A0A0A0; \
-            border-radius: 4px; \
-        } \
-        QScrollBar::up-arrow:vertical, QScrollBar::down-arrow:vertical { \
-            background: none; \
-        } \
-        QScrollBar::add-page:vertical, QScrollBar::sub-page:vertical { \
-            background: none; \
-        } \
-        QScrollBar::add-line { \
-            border: none; \
-            background: none; \
-        } \
-        QScrollBar::sub-line { \
-            border: none; \
-            background: none; \
-        }"
-    );
+    QFile style(":/styles/light_style.qss");
+    style.open(QFile::ReadOnly);
+    this->setStyleSheet(style.readAll());
 }
 
 

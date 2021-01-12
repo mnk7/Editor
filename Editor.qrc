@@ -1,0 +1,13 @@
+<RCC>
+    <qresource prefix="/translations">
+        <file>Editor_de_DE.qm</file>
+        <file>Editor_en_EN.qm</file>
+    </qresource>
+    <qresource prefix="/styles">
+        <file>dark_style.qss</file>
+        <file>light_style.qss</file>
+    </qresource>
+    <qresource prefix="/">
+        <file>Icon.png</file>
+    </qresource>
+</RCC>
