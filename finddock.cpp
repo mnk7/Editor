@@ -19,9 +19,11 @@ FindDock::FindDock(QWidget *parent)
     findButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     findButton->setFlat(true);
     findButton->setStyleSheet("text-align: right;");
+    connect(findButton, &QPushButton::pressed, this, &FindDock::requestFind);
     this->titleBarWidget()->layout()->addWidget(findButton);
 
     findEdit = new QLineEdit();
+    connect(findEdit, &QLineEdit::returnPressed, this, &FindDock::requestFind);
     this->titleBarWidget()->layout()->addWidget(findEdit);
 
 
@@ -35,15 +37,18 @@ FindDock::FindDock(QWidget *parent)
     replaceButton->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     replaceButton->setFlat(true);
     replaceButton->setStyleSheet("text-align: right;");
+    connect(replaceButton, &QPushButton::pressed, this, &FindDock::requestReplace);
     this->widget()->layout()->addWidget(replaceButton);
 
     replaceEdit = new QLineEdit();
+    connect(replaceEdit, &QLineEdit::returnPressed, this, &FindDock::requestReplace);
     this->widget()->layout()->addWidget(replaceEdit);
 
     replaceAll = new QPushButton();
     replaceAll->setFixedWidth(100);
     replaceAll->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
     replaceAll->setFlat(true);
+    connect(replaceAll, &QPushButton::pressed, this, &FindDock::requestReplaceAll);
     this->widget()->layout()->addWidget(replaceAll);
 
     retranslate();
@@ -54,4 +59,19 @@ void FindDock::retranslate() {
     findButton->setText(tr("find:"));
     replaceButton->setText(tr("replace with:"));
     replaceAll->setText(tr("replace all"));
+}
+
+
+void FindDock::requestFind() {
+    emit findRequested(findEdit->text());
+}
+
+
+void FindDock::requestReplace() {
+    emit replaceRequested(findEdit->text(), replaceEdit->text());
+}
+
+
+void FindDock::requestReplaceAll() {
+    emit replaceAllRequested(findEdit->text(), replaceEdit->text());
 }

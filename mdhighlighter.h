@@ -22,11 +22,15 @@ private:
     QTextCharFormat italicFormat;
     QTextCharFormat boldFormat;
     QTextCharFormat boldItalicFormat;
+    QTextCharFormat commentFormat;
+    QTextCharFormat htmlFormat;
 
     QRegularExpression headerRegEx;
     QRegularExpression italicRegEx;
     QRegularExpression boldRegEx;
     QRegularExpression boldItalicRegEx;
+    QRegularExpression commentRegEx;
+    QRegularExpression htmlRegEx;
 };
 
 #endif // MDHIGHLIGHTER_H

@@ -25,11 +25,21 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
+    void statisticsChanged(const int wordcount);
+
 protected:
     void closeEvent(QCloseEvent *event);
     void changeEvent(QEvent *event);
 
 private:
+    int wordcount;
+    int wordsPerPage;
+    int pagecount;
+    int wordsPerMinute;
+    int readtime;
+    int difficulty;
+
+
     QTranslator *translator;
 
     TextEditor *textEdit;

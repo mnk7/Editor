@@ -7,6 +7,13 @@ MainWindow::MainWindow(QWidget *parent)
     this->setUnifiedTitleAndToolBarOnMac(true);
     this->grabGesture(Qt::PanGesture);
 
+    wordcount = 0;
+    wordsPerPage = 250;
+    pagecount = 0;
+    wordsPerMinute = 150;
+    readtime = 0;
+    difficulty = 0;
+
     textwidth = 80;
 
     // install translator
@@ -21,6 +28,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     // FindDock
     findDock = new FindDock(this);
+    connect(findDock, &FindDock::findRequested, textEdit, &TextEditor::findRequested);
+    connect(findDock, &FindDock::replaceRequested, textEdit, &TextEditor::replaceRequested);
+    connect(findDock, &FindDock::replaceAllRequested, textEdit, &TextEditor::replaceAllRequested);
     this->addDockWidget(Qt::TopDockWidgetArea, findDock);
     findDock->setVisible(false);
 
@@ -63,11 +73,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(redoAction, &QAction::triggered, textEdit, &TextEditor::redo);
     toolbar->addAction(redoAction);
 
-    statisticsLabel = new QLabel("*stats...*");
+    statisticsLabel = new QLabel();
     statisticsLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
     statisticsLabel->setAlignment(Qt::AlignRight);
     statisticsLabel->setTextFormat(Qt::TextFormat::MarkdownText);
     statisticsLabel->setContentsMargins(20, 5, 20, 5);
+    connect(textEdit, &TextEditor::textAnalyzed, this, &MainWindow::statisticsChanged);
     toolbar->addWidget(statisticsLabel);
 
     optionsAction = new QAction(this);
@@ -83,6 +94,8 @@ MainWindow::MainWindow(QWidget *parent)
 
 void MainWindow::closeEvent(QCloseEvent *event) {
     writeSettings();
+
+    this->save();
     event->accept();
 }
 
@@ -187,6 +200,7 @@ void MainWindow::retranslate() {
     findAction->setText(tr("Find"));
     undoAction->setText(tr("Undo"));
     redoAction->setText(tr("Redo"));
+    statisticsChanged(wordcount);
     optionsAction->setText(tr("Options"));
 
     findDock->retranslate();
@@ -222,6 +236,19 @@ void MainWindow::setLightTheme() {
     QFile style(":/styles/light_style.qss");
     style.open(QFile::ReadOnly);
     this->setStyleSheet(style.readAll());
+}
+
+
+void MainWindow::statisticsChanged(const int wordcount) {
+    this->wordcount = wordcount;
+    pagecount = wordcount / wordsPerPage;
+    readtime = wordcount / wordsPerMinute;
+
+    statisticsLabel->setText(QString::number(wordcount) + tr(" words - ")
+                             + QString::number(pagecount) + tr(" pages - ")
+                             + QString::number(readtime / 60) + tr("h ")
+                             + QString::number(readtime % 60) + tr("m -")
+                             + tr(" level: ") + QString::number(difficulty));
 }
 
 

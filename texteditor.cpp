@@ -5,6 +5,9 @@ TextEditor::TextEditor(QWidget * parent)
 {
     textwidth = 80;
     limittextwidth = true;
+
+    wordcount = 0;
+
     //this->setAttribute(Qt::WA_AcceptTouchEvents);
     this->grabGesture(Qt::PanGesture);
     this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -18,6 +21,9 @@ TextEditor::TextEditor(QWidget * parent)
 
     highlighter = new MDHighlighter(this->document());
     highlighter->setDefaultFont(this->font());
+
+    connect(this, &TextEditor::textChanged, this, &TextEditor::analyzeText);
+    connect(this, &TextEditor::selectionChanged, this, &TextEditor::analyzeSelection);
 }
 
 
@@ -93,4 +99,83 @@ void TextEditor::setFont(const QFont &font) {
 
     highlighter->setDefaultFont(font);
     highlighter->rehighlight();
+}
+
+
+void TextEditor::findRequested(const QString &text) {
+    if(!this->find(text)) {
+        this->moveCursor(QTextCursor::Start);
+
+        if(!this->find(text)) {
+            QMessageBox::information(this, tr("Find Results"), text + tr(" not found."));
+        }
+    }
+}
+
+
+void TextEditor::replaceRequested(const QString &text, const QString &replacement) {
+    if(!(this->textCursor().hasSelection() && this->textCursor().selectedText() == text)) {
+        if(!this->find(text)) {
+            this->moveCursor(QTextCursor::Start);
+
+            if(!this->find(text)) {
+                QMessageBox::information(this, tr("Replace Results"), text + tr(" not found."));
+                return;
+            }
+        }
+    }
+
+    this->textCursor().insertText(replacement);
+
+    if(!this->find(text)) {
+        this->moveCursor(QTextCursor::Start);
+        this->find(text);
+    }
+}
+
+
+void TextEditor::replaceAllRequested(const QString &text, const QString &replacement) {
+    this->moveCursor(QTextCursor::Start);
+
+    this->textCursor().beginEditBlock();
+
+    while(this->find(text)) {
+        this->textCursor().insertText(replacement);
+    }
+
+    this->textCursor().endEditBlock();
+}
+
+
+void TextEditor::analyzeText() {
+    wordcount = countWords(this->toPlainText());
+    emit textAnalyzed(wordcount);
+}
+
+
+void TextEditor::analyzeSelection() {
+    if(this->textCursor().hasSelection()) {
+        QString selection = this->textCursor().selectedText();
+        emit textAnalyzed(countWords(selection));
+    } else {
+        emit textAnalyzed(wordcount);
+    }
+}
+
+
+int TextEditor::countWords(QString text) {
+    int wordcount = 0;
+
+    QRegularExpression wordRegEx("[^\\s]+");
+    QRegularExpressionMatchIterator matchIterator = wordRegEx.globalMatch(text);
+
+    if(matchIterator.isValid()) {
+        while(matchIterator.hasNext()) {
+            QRegularExpressionMatch match = matchIterator.next();
+
+            ++wordcount;
+        }
+    }
+
+    return wordcount;
 }

@@ -66,5 +66,48 @@
         <source>Redo</source>
         <translation>Vor</translation>
     </message>
+    <message>
+        <source> words;*</source>
+        <translation type="vanished"> Worte;*</translation>
+    </message>
+    <message>
+        <source> words - </source>
+        <translation> Worte - </translation>
+    </message>
+    <message>
+        <source> pages - </source>
+        <translation> Seiten - </translation>
+    </message>
+    <message>
+        <source>h </source>
+        <translation>h </translation>
+    </message>
+    <message>
+        <source>m -</source>
+        <translation>m -</translation>
+    </message>
+    <message>
+        <source> difficulty: </source>
+        <translation type="vanished"> Schwierigkeit: </translation>
+    </message>
+    <message>
+        <source> level: </source>
+        <translation> Level: </translation>
+    </message>
+</context>
+<context>
+    <name>TextEditor</name>
+    <message>
+        <source>Find Results</source>
+        <translation>Finden Ergebnisse</translation>
+    </message>
+    <message>
+        <source> not found.</source>
+        <translation> nicht gefunden.</translation>
+    </message>
+    <message>
+        <source>Replace Results</source>
+        <translation>Ersetzen Ergebnisse</translation>
+    </message>
 </context>
 </TS>

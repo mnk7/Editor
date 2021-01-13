@@ -10,11 +10,15 @@ MDHighlighter::MDHighlighter(QTextDocument *document)
     boldFormat.setFontWeight(QFont::Bold);
     boldItalicFormat.setFontItalic(true);
     boldItalicFormat.setFontWeight(QFont::Bold);
+    commentFormat.setForeground(Qt::gray);
+    htmlFormat.setForeground(Qt::red);
 
     headerRegEx.setPattern("#");
-    italicRegEx.setPattern("\\*[^\\*]+\\*\\s");
-    boldRegEx.setPattern("\\*\\*[^\\*]+\\*\\*\\s");
-    boldItalicRegEx.setPattern("\\*\\*\\*[^\\*]+\\*\\*\\*\\s");
+    italicRegEx.setPattern("\\*[^\\*]+\\*");
+    boldRegEx.setPattern("\\*\\*[^\\*]+\\*\\*");
+    boldItalicRegEx.setPattern("\\*\\*\\*[^\\*]+\\*\\*\\*");
+    commentRegEx.setPattern("\\[comment\\]:\\s*#\\([^\\)]+\\)");
+    htmlRegEx.setPattern("\\<[^\\>]+\\>[^\\<]+\\<\\/[^\\>]+\\>");
 }
 
 
@@ -50,5 +54,17 @@ void MDHighlighter::highlightBlock(const QString &text) {
     while (matchIterator.hasNext()) {
         QRegularExpressionMatch match = matchIterator.next();
         this->setFormat(match.capturedStart(), match.capturedLength(), boldItalicFormat);
+    }
+
+    matchIterator = commentRegEx.globalMatch(text);
+    while (matchIterator.hasNext()) {
+        QRegularExpressionMatch match = matchIterator.next();
+        this->setFormat(match.capturedStart(), match.capturedLength(), commentFormat);
+    }
+
+    matchIterator = htmlRegEx.globalMatch(text);
+    while (matchIterator.hasNext()) {
+        QRegularExpressionMatch match = matchIterator.next();
+        this->setFormat(match.capturedStart(), match.capturedLength(), htmlFormat);
     }
 }
