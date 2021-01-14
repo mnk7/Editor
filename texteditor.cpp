@@ -65,11 +65,15 @@ bool TextEditor::event(QEvent *event) {
 }
 
 
-void TextEditor::setTextWidth(int textwidth) {
+int TextEditor::setTextWidth(int textwidth) {
     int margin = 0;
     if(limittextwidth) {
         this->textwidth = textwidth;
-        int textwidth_pixels = this->fontMetrics().horizontalAdvance(QString(textwidth, 'X'));
+        if(textwidth  < 10) {
+            this->textwidth = 10;
+        }
+
+        int textwidth_pixels = this->fontMetrics().horizontalAdvance(QString(this->textwidth, 'X'));
         // add the -1 to avoid rounding errors making the line too short
         margin = (this->width() - textwidth_pixels - 1) / 2;
 
@@ -79,6 +83,15 @@ void TextEditor::setTextWidth(int textwidth) {
     }
 
     this->setViewportMargins(margin, 0, margin, 0);
+
+    return this->textwidth;
+}
+
+
+void TextEditor::limitTextWidth(bool limittextwidth) {
+    this->limittextwidth = limittextwidth;
+
+    setTextWidth(textwidth);
 }
 
 
@@ -90,6 +103,23 @@ void TextEditor::resizeEvent(QResizeEvent *event) {
 
 
 void TextEditor::setFont(const QFont &font) {
+    QFont fontCopy = font;
+    fontCopy.setPointSize(this->font().pointSize());
+    this->QWidget::setFont(fontCopy);
+
+    this->setTextWidth(textwidth);
+    this->setCursorWidth(this->fontMetrics().horizontalAdvance("X"));
+
+    this->setTabStopDistance(this->cursorWidth() * 4);
+
+    highlighter->setDefaultFont(fontCopy);
+    highlighter->rehighlight();
+}
+
+
+void TextEditor::setFontSize(int fontsize) {
+    QFont font = this->font();
+    font.setPointSize(fontsize);
     this->QWidget::setFont(font);
 
     this->setTextWidth(textwidth);

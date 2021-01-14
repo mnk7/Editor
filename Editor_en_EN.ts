@@ -56,7 +56,7 @@
     </message>
     <message>
         <source>Select Font</source>
-        <translation>Select Font</translation>
+        <translation type="vanished">Select Font</translation>
     </message>
     <message>
         <source>Undo</source>
@@ -72,11 +72,11 @@
     </message>
     <message>
         <source> words - </source>
-        <translation> words - </translation>
+        <translation type="vanished"> words - </translation>
     </message>
     <message>
         <source> pages - </source>
-        <translation> pages - </translation>
+        <translation type="vanished"> pages - </translation>
     </message>
     <message>
         <source>h </source>
@@ -84,7 +84,7 @@
     </message>
     <message>
         <source>m -</source>
-        <translation>m -</translation>
+        <translation type="vanished">m -</translation>
     </message>
     <message>
         <source> difficulty: </source>
@@ -93,6 +93,53 @@
     <message>
         <source> level: </source>
         <translation> level: </translation>
+    </message>
+    <message>
+        <source>1 word</source>
+        <translation>1 word</translation>
+    </message>
+    <message>
+        <source> words</source>
+        <translation> words</translation>
+    </message>
+    <message>
+        <source>1 page</source>
+        <translation>1 page</translation>
+    </message>
+    <message>
+        <source> pages</source>
+        <translation> pages</translation>
+    </message>
+    <message>
+        <source>m</source>
+        <translation>m</translation>
+    </message>
+</context>
+<context>
+    <name>SettingsDock</name>
+    <message>
+        <source>limit editor width</source>
+        <translation>limit editor width</translation>
+    </message>
+    <message>
+        <source>characters per line:</source>
+        <translation>characters per line:</translation>
+    </message>
+    <message>
+        <source>show word count</source>
+        <translation>show word count</translation>
+    </message>
+    <message>
+        <source>show page count</source>
+        <translation>show page count</translation>
+    </message>
+    <message>
+        <source>show read time</source>
+        <translation>show read time</translation>
+    </message>
+    <message>
+        <source>show Flesch-level</source>
+        <translation>show Flesch-level</translation>
     </message>
 </context>
 <context>

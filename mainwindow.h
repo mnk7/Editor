@@ -16,6 +16,7 @@
 
 #include "texteditor.h"
 #include "finddock.h"
+#include "settingsdock.h"
 
 class MainWindow : public QMainWindow
 {
@@ -25,13 +26,18 @@ public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
 
-    void statisticsChanged(const int wordcount);
-
 protected:
     void closeEvent(QCloseEvent *event);
     void changeEvent(QEvent *event);
 
 private:
+    QString currentFile;
+
+    // the number of characters in a line
+    int textwidth;
+
+    QString locale;
+
     int wordcount;
     int wordsPerPage;
     int pagecount;
@@ -39,11 +45,17 @@ private:
     int readtime;
     int difficulty;
 
+    bool showWordcount;
+    bool showPagecount;
+    bool showReadtime;
+    bool showDifficulty;
+
 
     QTranslator *translator;
 
     TextEditor *textEdit;
     FindDock *findDock;
+    SettingsDock *settingsDock;
 
     QToolBar *toolbar;
     QAction *openAction;
@@ -55,23 +67,22 @@ private:
     QLabel *statisticsLabel;
     QAction *optionsAction;
 
-    QString currentFile;
+    void setTextWidth(int textwidth) {this->textwidth = textwidth; this->textwidth = textEdit->setTextWidth(textwidth);}
+    void setShowWordcount(bool showWordcount) {this->showWordcount = showWordcount; statisticsChanged(wordcount);}
+    void setShowPagecount(bool showPagecount) {this->showPagecount = showPagecount; statisticsChanged(wordcount);}
+    void setShowReadtime(bool showReadtime) {this->showReadtime = showReadtime; statisticsChanged(wordcount);}
+    void setShowDifficulty(bool showDifficulty) {this->showDifficulty = showDifficulty; statisticsChanged(wordcount);}
 
-    // the number of characters in a line
-    int textwidth;
-    QString locale;
-
+    void retranslate();
     void readSettings();
     void writeSettings();
     void open();
     void save();
     void saveas();
     void saveToDisk(QString &filename);
-    void find();
     void selectLanguage(QString locale);
-    void retranslate();
-    void selectFont();
     void setDarkTheme();
     void setLightTheme();
+    void statisticsChanged(const int wordcount);
 };
 #endif // MAINWINDOW_H

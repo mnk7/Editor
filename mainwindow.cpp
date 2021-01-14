@@ -3,7 +3,7 @@
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent)
 {
-    this->setMinimumSize(500, 300);
+    this->setMinimumSize(500, 400);
     this->setUnifiedTitleAndToolBarOnMac(true);
     this->grabGesture(Qt::PanGesture);
 
@@ -12,7 +12,12 @@ MainWindow::MainWindow(QWidget *parent)
     pagecount = 0;
     wordsPerMinute = 150;
     readtime = 0;
-    difficulty = 0;
+    difficulty = 100;
+
+    showWordcount = true;
+    showPagecount = false;
+    showReadtime = false;
+    showDifficulty = false;
 
     textwidth = 80;
 
@@ -33,6 +38,22 @@ MainWindow::MainWindow(QWidget *parent)
     connect(findDock, &FindDock::replaceAllRequested, textEdit, &TextEditor::replaceAllRequested);
     this->addDockWidget(Qt::TopDockWidgetArea, findDock);
     findDock->setVisible(false);
+
+    // SettingsDock
+    settingsDock = new SettingsDock(this, locale);
+    this->addDockWidget(Qt::RightDockWidgetArea, settingsDock);
+    connect(settingsDock, &SettingsDock::lightThemeRequested, this, &MainWindow::setLightTheme);
+    connect(settingsDock, &SettingsDock::darkThemeRequested, this, &MainWindow::setDarkTheme);
+    connect(settingsDock, &SettingsDock::setEnableFixedTextwidthRequested, textEdit, &TextEditor::limitTextWidth);
+    connect(settingsDock, &SettingsDock::textwidthChangeRequested, this, &MainWindow::setTextWidth);
+    connect(settingsDock, &SettingsDock::fontChangeRequested, textEdit, &TextEditor::setFont);
+    connect(settingsDock, &SettingsDock::fontSizeChangeRequested, textEdit, &TextEditor::setFontSize);
+    connect(settingsDock, &SettingsDock::languageChangeRequested, this, &MainWindow::selectLanguage);
+    connect(settingsDock, &SettingsDock::showWordcountRequested, this, &MainWindow::setShowWordcount);
+    connect(settingsDock, &SettingsDock::showPagecountRequested, this, &MainWindow::setShowPagecount);
+    connect(settingsDock, &SettingsDock::showReadtimeRequested, this, &MainWindow::setShowReadtime);
+    connect(settingsDock, &SettingsDock::showDifficultyRequested, this, &MainWindow::setShowDifficulty);
+    settingsDock->setVisible(false);
 
     // ToolBar
     toolbar = new QToolBar(this);
@@ -60,7 +81,8 @@ MainWindow::MainWindow(QWidget *parent)
 
     findAction = new QAction(this);
     findAction->setShortcut(QKeySequence::Find);
-    connect(findAction, &QAction::triggered, this, &MainWindow::find);
+    connect(findAction, &QAction::triggered,
+            this, [=]() {findDock->setVisible(!findDock->isVisible());});
     toolbar->addAction(findAction);
 
     undoAction = new QAction(this);
@@ -82,20 +104,38 @@ MainWindow::MainWindow(QWidget *parent)
     toolbar->addWidget(statisticsLabel);
 
     optionsAction = new QAction(this);
-    connect(optionsAction, &QAction::triggered, this, &MainWindow::selectFont);
+    connect(optionsAction, &QAction::triggered,
+            this, [=]() {settingsDock->setVisible(!settingsDock->isVisible());});
     toolbar->addAction(optionsAction);
 
     this->addToolBar(toolbar);
 
     this->retranslate();
-    this->setDarkTheme();
+    //this->setDarkTheme();
+}
+
+
+void MainWindow::retranslate() {
+    openAction->setText(tr("Open"));
+    saveAction->setText(tr("Save"));
+    saveasAction->setText(tr("Save as"));
+    findAction->setText(tr("Find"));
+    undoAction->setText(tr("Undo"));
+    redoAction->setText(tr("Redo"));
+    statisticsChanged(wordcount);
+    optionsAction->setText(tr("Options"));
+
+    findDock->retranslate();
+    settingsDock->retranslate();
 }
 
 
 void MainWindow::closeEvent(QCloseEvent *event) {
     writeSettings();
 
-    this->save();
+    if(wordcount > 0) {
+        this->save();
+    }
     event->accept();
 }
 
@@ -179,49 +219,12 @@ void MainWindow::saveToDisk(QString &filename) {
 }
 
 
-void MainWindow::find() {
-    findDock->setVisible(!findDock->isVisible());
-}
-
-
 void MainWindow::selectLanguage(QString locale) {
     QApplication::removeTranslator(translator);
     translator->load(":translations/Editor_" + locale + ".qm");
     QApplication::installTranslator(translator);
 
     this->locale = locale;
-}
-
-
-void MainWindow::retranslate() {
-    openAction->setText(tr("Open"));
-    saveAction->setText(tr("Save"));
-    saveasAction->setText(tr("Save as"));
-    findAction->setText(tr("Find"));
-    undoAction->setText(tr("Undo"));
-    redoAction->setText(tr("Redo"));
-    statisticsChanged(wordcount);
-    optionsAction->setText(tr("Options"));
-
-    findDock->retranslate();
-}
-
-
-void MainWindow::selectFont() {
-    bool fontSelected;
-    QFont font = QFontDialog::getFont(&fontSelected, textEdit->font(), this, tr("Select Font"));
-
-    if (fontSelected) {
-        textEdit->setFont(font);
-    }
-
-
-    if(locale.endsWith("de_DE")) {
-        selectLanguage("en_EN");
-        qDebug("Englisch");
-    } else {
-        selectLanguage("de_DE");
-    }
 }
 
 
@@ -244,11 +247,46 @@ void MainWindow::statisticsChanged(const int wordcount) {
     pagecount = wordcount / wordsPerPage;
     readtime = wordcount / wordsPerMinute;
 
-    statisticsLabel->setText(QString::number(wordcount) + tr(" words - ")
-                             + QString::number(pagecount) + tr(" pages - ")
-                             + QString::number(readtime / 60) + tr("h ")
-                             + QString::number(readtime % 60) + tr("m -")
-                             + tr(" level: ") + QString::number(difficulty));
+    QString showntext = "";
+
+    if(showWordcount) {
+        if(wordcount == 1) {
+            showntext += tr("1 word");
+        } else {
+            showntext += QString::number(wordcount) + tr(" words");
+        }
+    }
+
+    if(showPagecount) {
+        if(showntext.size() > 0) {
+            showntext += " - ";
+        }
+
+        if(pagecount == 1) {
+            showntext += tr("1 page");
+        } else {
+            showntext += QString::number(pagecount) + tr(" pages");
+        }
+    }
+
+    if(showReadtime) {
+        if(showntext.size() > 0) {
+            showntext += " - ";
+        }
+
+        showntext += QString::number(readtime / 60) + tr("h ")
+                     + QString::number(readtime % 60) + tr("m");
+    }
+
+    if(showDifficulty) {
+        if(showntext.size() > 0) {
+            showntext += " - ";
+        }
+
+        showntext += tr(" level: ") + QString::number(difficulty);
+    }
+
+    statisticsLabel->setText(showntext);
 }
 
 

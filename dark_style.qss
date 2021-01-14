@@ -35,6 +35,21 @@ QToolBar {
     border-style: none;
 }
 
+QComboBox {
+    background: #202020;
+    background-color: #202020;
+}
+
+QFontComboBox {
+    selection-background-color: #CCB026;
+}
+
+SettingsDock > QWidget {
+    border-style: solid;
+    border-width: 1px;
+    border-color: #202020 #202020 #202020 #FFFFFF;
+}
+
 QScrollBar:vertical {
     width: 10px;
     border-style: none;

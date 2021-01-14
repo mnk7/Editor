@@ -13,12 +13,14 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     mdhighlighter.cpp \
+    settingsdock.cpp \
     texteditor.cpp
 
 HEADERS += \
     finddock.h \
     mainwindow.h \
     mdhighlighter.h \
+    settingsdock.h \
     texteditor.h
 
 TRANSLATIONS += \

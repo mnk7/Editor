@@ -18,11 +18,12 @@ public:
 
     int getWordcount() {return wordcount;}
 
-    void setTextWidth(int textwidth);
-    void limitTextWidth(bool limittextwidth) {this->limittextwidth = limittextwidth;}
+    int setTextWidth(int textwidth);
+    void limitTextWidth(bool limittextwidth);
 
     void resizeEvent(QResizeEvent *event);
     void setFont(const QFont &font);
+    void setFontSize(int fontsize);
 
     void findRequested(const QString &text);
     void replaceRequested(const QString &text, const QString &replacement);
