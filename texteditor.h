@@ -16,7 +16,12 @@ class TextEditor : public QPlainTextEdit
 public:
     TextEditor(QWidget *parent);
 
-    int getWordcount() {return wordcount;}
+    struct TextData {
+        int charactercount = 0;
+        int wordcount = 0;
+    };
+
+    TextData getTextData() {return data;}
 
     int setTextWidth(int textwidth);
     void limitTextWidth(bool limittextwidth);
@@ -33,7 +38,7 @@ public:
     void analyzeSelection();
 
 signals:
-    void textAnalyzed(const int wordcount);
+    void textAnalyzed(const TextData data);
 
 protected:
     bool event(QEvent *event);
@@ -42,11 +47,11 @@ private:
     int textwidth;
     bool limittextwidth;
 
-    int wordcount;
+    TextData data;
 
     MDHighlighter *highlighter;
 
-    int countWords(QString text);
+    TextData countWords(QString text);
 };
 
 #endif // TEXTEDITOR_H

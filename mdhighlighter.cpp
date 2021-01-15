@@ -14,9 +14,9 @@ MDHighlighter::MDHighlighter(QTextDocument *document)
     htmlFormat.setForeground(Qt::red);
 
     headerRegEx.setPattern("#");
-    italicRegEx.setPattern("\\*[^\\*]+\\*");
-    boldRegEx.setPattern("\\*\\*[^\\*]+\\*\\*");
-    boldItalicRegEx.setPattern("\\*\\*\\*[^\\*]+\\*\\*\\*");
+    italicRegEx.setPattern("[\\*_][^\\*_]+[\\*_]");
+    boldRegEx.setPattern("[\\*_]{2,2}[^\\*_]+[\\*_]{2,2}");
+    boldItalicRegEx.setPattern("[\\*_]{3,3}[^\\*_]+[\\*_]{3,3}");
     commentRegEx.setPattern("\\[comment\\]:\\s*#\\([^\\)]+\\)");
     htmlRegEx.setPattern("\\<[^\\>]+\\>[^\\<]+\\<\\/[^\\>]+\\>");
 }
@@ -38,7 +38,27 @@ void MDHighlighter::highlightBlock(const QString &text) {
         this->setFormat(0, text.size(), headerFormat);
     }
 
-    QRegularExpressionMatchIterator matchIterator = italicRegEx.globalMatch(text);
+    if(text.startsWith(">") || text.startsWith("\t") || text.startsWith("    ")) {
+        this->setFormat(0, text.size(), commentFormat);
+    }
+
+    if(text == "***" || text == "---" || QRegExp("__[_]+").exactMatch(text)) {
+        this->setFormat(0, text.size(), htmlFormat);
+    }
+
+    QRegularExpressionMatchIterator matchIterator = commentRegEx.globalMatch(text);
+    while (matchIterator.hasNext()) {
+        QRegularExpressionMatch match = matchIterator.next();
+        this->setFormat(match.capturedStart(), match.capturedLength(), commentFormat);
+    }
+
+    matchIterator = htmlRegEx.globalMatch(text);
+    while (matchIterator.hasNext()) {
+        QRegularExpressionMatch match = matchIterator.next();
+        this->setFormat(match.capturedStart(), match.capturedLength(), htmlFormat);
+    }
+
+    matchIterator = italicRegEx.globalMatch(text);
     while (matchIterator.hasNext()) {
         QRegularExpressionMatch match = matchIterator.next();
         this->setFormat(match.capturedStart(), match.capturedLength(), italicFormat);
@@ -54,17 +74,5 @@ void MDHighlighter::highlightBlock(const QString &text) {
     while (matchIterator.hasNext()) {
         QRegularExpressionMatch match = matchIterator.next();
         this->setFormat(match.capturedStart(), match.capturedLength(), boldItalicFormat);
-    }
-
-    matchIterator = commentRegEx.globalMatch(text);
-    while (matchIterator.hasNext()) {
-        QRegularExpressionMatch match = matchIterator.next();
-        this->setFormat(match.capturedStart(), match.capturedLength(), commentFormat);
-    }
-
-    matchIterator = htmlRegEx.globalMatch(text);
-    while (matchIterator.hasNext()) {
-        QRegularExpressionMatch match = matchIterator.next();
-        this->setFormat(match.capturedStart(), match.capturedLength(), htmlFormat);
     }
 }

@@ -7,7 +7,6 @@
 #include <QPushButton>
 #include <QLabel>
 #include <QLineEdit>
-#include <QIntValidator>
 #include <QComboBox>
 #include <QFontComboBox>
 
@@ -15,7 +14,8 @@ class SettingsDock : public QDockWidget
 {
     Q_OBJECT
 public:
-    SettingsDock(QWidget *parent, QString local);
+    SettingsDock(QWidget *parent, QString local, int textwidth, int wordsPerPage,
+                 int charactersPerPage, int wordsPerMinute, int autosaveInterval);
 
     void retranslate();
 
@@ -31,8 +31,12 @@ signals:
     void showPagecountRequested(bool);
     void showReadtimeRequested(bool);
     void showDifficultyRequested(bool);
-    void wordsperPageChangeRequested(int);
+    void useCharactersPerPage(bool);
+    void wordsPerPageChangeRequested(int);
+    void charactersPerPageChangeRequested(int);
     void wordsPerMinuteChangeRequested(int);
+    void setEnableAutosaveRequested(bool);
+    void autosaveIntervalChangeRequested(int);
 
 private:
     QCheckBox *enableTextwidthCheck;
@@ -43,8 +47,14 @@ private:
     QCheckBox *readtimeCheck;
     QCheckBox *difficultyCheck;
 
+    QCheckBox *useCharactersPerPageCheck;
     QLabel *wordsPerPageLabel;
+    QLabel *charactersPerPageLabel;
+
     QLabel *wordsPerMinuteLabel;
+
+    QCheckBox *enableAutosaveCheck;
+    QLabel *autosaveIntervalLabel;
 
     void newLanguageSelected(int index);
 };

@@ -119,7 +119,7 @@
     <name>SettingsDock</name>
     <message>
         <source>limit editor width</source>
-        <translation>limit editor width</translation>
+        <translation>limit line length</translation>
     </message>
     <message>
         <source>characters per line:</source>
@@ -140,6 +140,30 @@
     <message>
         <source>show Flesch-level</source>
         <translation>show Flesch-level</translation>
+    </message>
+    <message>
+        <source>page count from characters</source>
+        <translation>page count from characters</translation>
+    </message>
+    <message>
+        <source>words per page:</source>
+        <translation>words per page:</translation>
+    </message>
+    <message>
+        <source>characters per page:</source>
+        <translation>characters per page:</translation>
+    </message>
+    <message>
+        <source>words per minute:</source>
+        <translation>words per minute:</translation>
+    </message>
+    <message>
+        <source>enable auto-save</source>
+        <translation>enable auto save</translation>
+    </message>
+    <message>
+        <source>auto-save interval (min):</source>
+        <translation>auto save interval (min):</translation>
     </message>
 </context>
 <context>

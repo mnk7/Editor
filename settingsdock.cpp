@@ -1,6 +1,7 @@
 #include "settingsdock.h"
 
-SettingsDock::SettingsDock(QWidget *parent, QString locale)
+SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, int wordsPerPage,
+                           int charactersPerPage, int wordsPerMinute, int autosaveInterval)
     : QDockWidget(parent)
 {
     this->setAllowedAreas(Qt::RightDockWidgetArea);
@@ -14,7 +15,7 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale)
     this->widget()->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
     QGridLayout *gridLayout = new QGridLayout(this->widget());
     this->widget()->setLayout(gridLayout);
-    gridLayout->setContentsMargins(10, 10, 10, 10);
+    gridLayout->setContentsMargins(20, 20, 20, 20);
     gridLayout->setVerticalSpacing(10);
 
 
@@ -108,10 +109,11 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale)
     textwidthEdit->setMaxLength(4);
     textwidthEdit->setMaximumWidth(60);
     textwidthEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    textwidthEdit->setText("80");
+    textwidthEdit->setText(QString::number(textwidth));
     textwidthEdit->setAlignment(Qt::AlignCenter);
-    textwidthEdit->setValidator(new QIntValidator(0, 1000));
-    connect(textwidthEdit, &QLineEdit::textChanged,
+    textwidthEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("[1-9]\\d{1,3}")));
+    connect(textwidthEdit, &QLineEdit::inputRejected, textwidthEdit, [=]() {textwidthEdit->setText(QString::number(textwidth));});
+    connect(textwidthEdit, &QLineEdit::editingFinished,
             this, [=]() {emit textwidthChangeRequested(textwidthEdit->text().toInt());});
     gridLayout->addWidget(textwidthEdit, 4, 3, 1, 1);
 
@@ -123,23 +125,110 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale)
             this, [=](bool checked) {emit showWordcountRequested(checked);});
     gridLayout->addWidget(wordcountCheck, 5, 0, 1, 4);
 
+
+    // page statistics
     pagecountCheck = new QCheckBox();
     pagecountCheck->setChecked(false);
     connect(pagecountCheck, &QCheckBox::clicked,
             this, [=](bool checked) {emit showPagecountRequested(checked);});
     gridLayout->addWidget(pagecountCheck, 6, 0, 1, 4);
 
+    useCharactersPerPageCheck = new QCheckBox();
+    useCharactersPerPageCheck->setChecked(false);
+    connect(useCharactersPerPageCheck, &QCheckBox::clicked,
+            this, [=](bool checked) {emit useCharactersPerPage(checked);});
+    gridLayout->addWidget(useCharactersPerPageCheck, 7, 0, 1, 4);
+
+    wordsPerPageLabel = new QLabel();
+    wordsPerPageLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    gridLayout->addWidget(wordsPerPageLabel, 8, 0, 1, 3);
+
+    QLineEdit *wordsPerPageEdit = new QLineEdit();
+    wordsPerPageEdit->setMaxLength(4);
+    wordsPerPageEdit->setMaximumWidth(60);
+    wordsPerPageEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    wordsPerPageEdit->setText(QString::number(wordsPerPage));
+    wordsPerPageEdit->setAlignment(Qt::AlignCenter);
+    wordsPerPageEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("[1-9]\\d{0,5}")));
+    connect(wordsPerPageEdit, &QLineEdit::inputRejected, wordsPerPageEdit, [=]() {wordsPerPageEdit->setText(QString::number(wordsPerPage));});
+    connect(wordsPerPageEdit, &QLineEdit::editingFinished,
+            this, [=]() {emit wordsPerPageChangeRequested(wordsPerPageEdit->text().toInt());});
+    gridLayout->addWidget(wordsPerPageEdit, 8, 3, 1, 1);
+
+
+    charactersPerPageLabel = new QLabel();
+    charactersPerPageLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    gridLayout->addWidget(charactersPerPageLabel, 9, 0, 1, 3);
+
+    QLineEdit *charactersPerPageEdit = new QLineEdit();
+    charactersPerPageEdit->setMaxLength(4);
+    charactersPerPageEdit->setMaximumWidth(60);
+    charactersPerPageEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    charactersPerPageEdit->setText(QString::number(charactersPerPage));
+    charactersPerPageEdit->setAlignment(Qt::AlignCenter);
+    charactersPerPageEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("[1-9]\\d{0,6}")));
+    connect(charactersPerPageEdit, &QLineEdit::inputRejected, charactersPerPageEdit, [=]() {charactersPerPageEdit->setText(QString::number(charactersPerPage));});
+    connect(charactersPerPageEdit, &QLineEdit::editingFinished,
+            this, [=]() {emit charactersPerPageChangeRequested(charactersPerPageEdit->text().toInt());});
+    gridLayout->addWidget(charactersPerPageEdit, 9, 3, 1, 1);
+
+
+    // readtime statistics
     readtimeCheck = new QCheckBox();
     readtimeCheck->setChecked(false);
     connect(readtimeCheck, &QCheckBox::clicked,
             this, [=](bool checked) {emit showReadtimeRequested(checked);});
-    gridLayout->addWidget(readtimeCheck, 7, 0, 1, 4);
+    gridLayout->addWidget(readtimeCheck, 10, 0, 1, 4);
 
+    wordsPerMinuteLabel = new QLabel();
+    wordsPerMinuteLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    gridLayout->addWidget(wordsPerMinuteLabel, 11, 0, 1, 3);
+
+    QLineEdit *wordsPerMinuteEdit = new QLineEdit();
+    wordsPerMinuteEdit->setMaxLength(4);
+    wordsPerMinuteEdit->setMaximumWidth(60);
+    wordsPerMinuteEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    wordsPerMinuteEdit->setText(QString::number(wordsPerMinute));
+    wordsPerMinuteEdit->setAlignment(Qt::AlignCenter);
+    wordsPerMinuteEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("[1-9]\\d{0,3}")));
+    connect(wordsPerMinuteEdit, &QLineEdit::inputRejected, wordsPerMinuteEdit, [=]() {wordsPerMinuteEdit->setText(QString::number(wordsPerMinute));});
+    connect(wordsPerMinuteEdit, &QLineEdit::editingFinished,
+            this, [=]() {emit wordsPerMinuteChangeRequested(wordsPerMinuteEdit->text().toInt());});
+    gridLayout->addWidget(wordsPerMinuteEdit, 11, 3, 1, 1);
+
+
+    // difficulty statistics
     difficultyCheck = new QCheckBox();
     difficultyCheck->setChecked(false);
     connect(difficultyCheck, &QCheckBox::clicked,
             this, [=](bool checked) {emit showDifficultyRequested(checked);});
-    gridLayout->addWidget(difficultyCheck, 8, 0, 1, 4);
+    gridLayout->addWidget(difficultyCheck, 12, 0, 1, 4);
+
+
+    // enable auto-save
+    enableAutosaveCheck = new QCheckBox();
+    enableAutosaveCheck->setChecked(true);
+    connect(enableAutosaveCheck, &QCheckBox::clicked,
+            this, [=](bool checked) {emit setEnableAutosaveRequested(checked);});
+    gridLayout->addWidget(enableAutosaveCheck, 13, 0, 1, 4);
+
+
+    // auto-save interval
+    autosaveIntervalLabel = new QLabel();
+    autosaveIntervalLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    gridLayout->addWidget(autosaveIntervalLabel, 14, 0, 1, 3);
+
+    QLineEdit *autosaveEdit = new QLineEdit();
+    autosaveEdit->setMaxLength(4);
+    autosaveEdit->setMaximumWidth(60);
+    autosaveEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
+    autosaveEdit->setText(QString::number(autosaveInterval));
+    autosaveEdit->setAlignment(Qt::AlignCenter);
+    autosaveEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("[1-9]\\d{0,3}")));
+    connect(autosaveEdit, &QLineEdit::inputRejected, autosaveEdit, [=]() {autosaveEdit->setText(QString::number(autosaveInterval));});
+    connect(autosaveEdit, &QLineEdit::editingFinished,
+            this, [=]() {emit autosaveIntervalChangeRequested(autosaveEdit->text().toInt());});
+    gridLayout->addWidget(autosaveEdit, 14, 3, 1, 1);
 
     gridLayout->setRowStretch(20, 100);
 
@@ -154,6 +243,12 @@ void SettingsDock::retranslate() {
     pagecountCheck->setText(tr("show page count"));
     readtimeCheck->setText(tr("show read time"));
     difficultyCheck->setText(tr("show Flesch-level"));
+    useCharactersPerPageCheck->setText(tr("page count from characters"));
+    wordsPerPageLabel->setText(tr("words per page:"));
+    charactersPerPageLabel->setText(tr("characters per page:"));
+    wordsPerMinuteLabel->setText(tr("words per minute:"));
+    enableAutosaveCheck->setText(tr("enable auto-save"));
+    autosaveIntervalLabel->setText(tr("auto-save interval (min):"));
 }
 
 

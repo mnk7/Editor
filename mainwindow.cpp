@@ -7,8 +7,17 @@ MainWindow::MainWindow(QWidget *parent)
     this->setUnifiedTitleAndToolBarOnMac(true);
     this->grabGesture(Qt::PanGesture);
 
-    wordcount = 0;
+    textwidth = 80;
+
+    autosaveInterval = 3;
+    useAutosave = true;
+
+    autosaveTimer = new QTimer(this);
+    connect(autosaveTimer, &QTimer::timeout, this, &MainWindow::save);
+    autosaveTimer->start(autosaveInterval * 1000000);
+
     wordsPerPage = 250;
+    charactersPerPage = 1800;
     pagecount = 0;
     wordsPerMinute = 150;
     readtime = 0;
@@ -16,10 +25,9 @@ MainWindow::MainWindow(QWidget *parent)
 
     showWordcount = true;
     showPagecount = false;
+    pagecountFromCharacters = false;
     showReadtime = false;
     showDifficulty = false;
-
-    textwidth = 80;
 
     // install translator
     translator = new QTranslator();
@@ -40,7 +48,7 @@ MainWindow::MainWindow(QWidget *parent)
     findDock->setVisible(false);
 
     // SettingsDock
-    settingsDock = new SettingsDock(this, locale);
+    settingsDock = new SettingsDock(this, locale, textwidth, wordsPerPage, charactersPerPage, wordsPerMinute, autosaveInterval);
     this->addDockWidget(Qt::RightDockWidgetArea, settingsDock);
     connect(settingsDock, &SettingsDock::lightThemeRequested, this, &MainWindow::setLightTheme);
     connect(settingsDock, &SettingsDock::darkThemeRequested, this, &MainWindow::setDarkTheme);
@@ -53,6 +61,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(settingsDock, &SettingsDock::showPagecountRequested, this, &MainWindow::setShowPagecount);
     connect(settingsDock, &SettingsDock::showReadtimeRequested, this, &MainWindow::setShowReadtime);
     connect(settingsDock, &SettingsDock::showDifficultyRequested, this, &MainWindow::setShowDifficulty);
+    connect(settingsDock, &SettingsDock::useCharactersPerPage, this, &MainWindow::setUseCharactersPerPage);
+    connect(settingsDock, &SettingsDock::wordsPerPageChangeRequested, this, &MainWindow::setWordsPerPage);
+    connect(settingsDock, &SettingsDock::charactersPerPageChangeRequested, this, &MainWindow::setCharactersPerPage);
+    connect(settingsDock, &SettingsDock::wordsPerMinuteChangeRequested, this, &MainWindow::setWordsPerMinute);
+    connect(settingsDock, &SettingsDock::setEnableAutosaveRequested, this, &MainWindow::setEnableAutosave);
+    connect(settingsDock, &SettingsDock::autosaveIntervalChangeRequested, this, &MainWindow::setAutosaveInterval);
     settingsDock->setVisible(false);
 
     // ToolBar
@@ -111,7 +125,7 @@ MainWindow::MainWindow(QWidget *parent)
     this->addToolBar(toolbar);
 
     this->retranslate();
-    //this->setDarkTheme();
+    this->setDarkTheme();
 }
 
 
@@ -122,7 +136,7 @@ void MainWindow::retranslate() {
     findAction->setText(tr("Find"));
     undoAction->setText(tr("Undo"));
     redoAction->setText(tr("Redo"));
-    statisticsChanged(wordcount);
+    statisticsChanged(data);
     optionsAction->setText(tr("Options"));
 
     findDock->retranslate();
@@ -133,7 +147,7 @@ void MainWindow::retranslate() {
 void MainWindow::closeEvent(QCloseEvent *event) {
     writeSettings();
 
-    if(wordcount > 0) {
+    if(data.wordcount > 0) {
         this->save();
     }
     event->accept();
@@ -242,18 +256,35 @@ void MainWindow::setLightTheme() {
 }
 
 
-void MainWindow::statisticsChanged(const int wordcount) {
-    this->wordcount = wordcount;
-    pagecount = wordcount / wordsPerPage;
-    readtime = wordcount / wordsPerMinute;
+void MainWindow::setAutosaveInterval(int autosaveInterval) {
+    if(autosaveInterval < 1) {
+        this->autosaveInterval = 1;
+    } else {
+        this->autosaveInterval = autosaveInterval;
+    }
+
+    autosaveTimer->start(autosaveInterval * 1000000);
+}
+
+
+void MainWindow::statisticsChanged(const TextEditor::TextData data) {
+    this->data = data;
+
+    if(pagecountFromCharacters) {
+        pagecount = data.charactercount / charactersPerPage;
+    } else {
+        pagecount = data.wordcount / wordsPerPage;
+    }
+
+    readtime = data.wordcount / wordsPerMinute;
 
     QString showntext = "";
 
     if(showWordcount) {
-        if(wordcount == 1) {
+        if(data.wordcount == 1) {
             showntext += tr("1 word");
         } else {
-            showntext += QString::number(wordcount) + tr(" words");
+            showntext += QString::number(data.wordcount) + tr(" words");
         }
     }
 

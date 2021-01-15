@@ -12,7 +12,7 @@
 #include <QFileDialog>
 #include <QTextStream>
 #include <QMessageBox>
-#include <QFontDialog>
+#include <QTimer>
 
 #include "texteditor.h"
 #include "finddock.h"
@@ -36,10 +36,15 @@ private:
     // the number of characters in a line
     int textwidth;
 
+    QTimer *autosaveTimer;
+    int autosaveInterval;
+    bool useAutosave;
+
     QString locale;
 
-    int wordcount;
+    TextEditor::TextData data;
     int wordsPerPage;
+    int charactersPerPage;
     int pagecount;
     int wordsPerMinute;
     int readtime;
@@ -47,6 +52,7 @@ private:
 
     bool showWordcount;
     bool showPagecount;
+    bool pagecountFromCharacters;
     bool showReadtime;
     bool showDifficulty;
 
@@ -68,10 +74,16 @@ private:
     QAction *optionsAction;
 
     void setTextWidth(int textwidth) {this->textwidth = textwidth; this->textwidth = textEdit->setTextWidth(textwidth);}
-    void setShowWordcount(bool showWordcount) {this->showWordcount = showWordcount; statisticsChanged(wordcount);}
-    void setShowPagecount(bool showPagecount) {this->showPagecount = showPagecount; statisticsChanged(wordcount);}
-    void setShowReadtime(bool showReadtime) {this->showReadtime = showReadtime; statisticsChanged(wordcount);}
-    void setShowDifficulty(bool showDifficulty) {this->showDifficulty = showDifficulty; statisticsChanged(wordcount);}
+    void setShowWordcount(bool showWordcount) {this->showWordcount = showWordcount; statisticsChanged(data);}
+    void setShowPagecount(bool showPagecount) {this->showPagecount = showPagecount; statisticsChanged(data);}
+    void setpagecountFromCharacters(bool pageCountFromCharacters) {this->pagecountFromCharacters = pageCountFromCharacters; statisticsChanged(data);}
+    void setShowReadtime(bool showReadtime) {this->showReadtime = showReadtime; statisticsChanged(data);}
+    void setShowDifficulty(bool showDifficulty) {this->showDifficulty = showDifficulty; statisticsChanged(data);}
+    void setUseCharactersPerPage(bool pagecountFromCharacters) {this->pagecountFromCharacters = pagecountFromCharacters; statisticsChanged(data);}
+    void setWordsPerPage(int wordsPerPage) {this->wordsPerPage = wordsPerPage; statisticsChanged(data);}
+    void setCharactersPerPage(int charactersPerPage) {this->charactersPerPage = charactersPerPage; statisticsChanged(data);}
+    void setWordsPerMinute(int wordsPerMinute) {this->wordsPerMinute = wordsPerMinute; statisticsChanged(data);}
+    void setEnableAutosave(bool useAutosave) {this->useAutosave = useAutosave; useAutosave ? autosaveTimer->start() : autosaveTimer->stop();}
 
     void retranslate();
     void readSettings();
@@ -83,6 +95,7 @@ private:
     void selectLanguage(QString locale);
     void setDarkTheme();
     void setLightTheme();
-    void statisticsChanged(const int wordcount);
+    void setAutosaveInterval(int autosaveInterval);
+    void statisticsChanged(const TextEditor::TextData data);
 };
 #endif // MAINWINDOW_H

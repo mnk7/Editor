@@ -141,6 +141,30 @@
         <source>show Flesch-level</source>
         <translation>zeige Flesch-Level</translation>
     </message>
+    <message>
+        <source>page count from characters</source>
+        <translation>Seitenanzahl aus Zeichenanzahl</translation>
+    </message>
+    <message>
+        <source>words per page:</source>
+        <translation>Worte pro Seite:</translation>
+    </message>
+    <message>
+        <source>characters per page:</source>
+        <translation>Zeichen pro Seite:</translation>
+    </message>
+    <message>
+        <source>words per minute:</source>
+        <translation>Worte pro Minute:</translation>
+    </message>
+    <message>
+        <source>enable auto-save</source>
+        <translation>Aktiviere Auto-Sichern</translation>
+    </message>
+    <message>
+        <source>auto-save interval (min):</source>
+        <translation>Auto-Sichern Interval (min):</translation>
+    </message>
 </context>
 <context>
     <name>TextEditor</name>

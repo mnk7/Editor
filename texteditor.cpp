@@ -6,8 +6,6 @@ TextEditor::TextEditor(QWidget * parent)
     textwidth = 80;
     limittextwidth = true;
 
-    wordcount = 0;
-
     //this->setAttribute(Qt::WA_AcceptTouchEvents);
     this->grabGesture(Qt::PanGesture);
     this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
@@ -178,8 +176,8 @@ void TextEditor::replaceAllRequested(const QString &text, const QString &replace
 
 
 void TextEditor::analyzeText() {
-    wordcount = countWords(this->toPlainText());
-    emit textAnalyzed(wordcount);
+    data = countWords(this->toPlainText());
+    emit textAnalyzed(data);
 }
 
 
@@ -188,13 +186,13 @@ void TextEditor::analyzeSelection() {
         QString selection = this->textCursor().selectedText();
         emit textAnalyzed(countWords(selection));
     } else {
-        emit textAnalyzed(wordcount);
+        emit textAnalyzed(data);
     }
 }
 
 
-int TextEditor::countWords(QString text) {
-    int wordcount = 0;
+TextEditor::TextData TextEditor::countWords(QString text) {
+    TextData data;
 
     QRegularExpression wordRegEx("[^\\s]+");
     QRegularExpressionMatchIterator matchIterator = wordRegEx.globalMatch(text);
@@ -203,9 +201,11 @@ int TextEditor::countWords(QString text) {
         while(matchIterator.hasNext()) {
             QRegularExpressionMatch match = matchIterator.next();
 
-            ++wordcount;
+            ++data.wordcount;
         }
     }
 
-    return wordcount;
+    data.charactercount = text.size();
+
+    return data;
 }
