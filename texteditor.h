@@ -19,6 +19,8 @@ public:
     struct TextData {
         int charactercount = 0;
         int wordcount = 0;
+        double avg_sentence_length = 1;
+        double avg_word_length = 1;
     };
 
     TextData getTextData() {return data;}

@@ -133,12 +133,6 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, int w
             this, [=](bool checked) {emit showPagecountRequested(checked);});
     gridLayout->addWidget(pagecountCheck, 6, 0, 1, 4);
 
-    useCharactersPerPageCheck = new QCheckBox();
-    useCharactersPerPageCheck->setChecked(false);
-    connect(useCharactersPerPageCheck, &QCheckBox::clicked,
-            this, [=](bool checked) {emit useCharactersPerPage(checked);});
-    gridLayout->addWidget(useCharactersPerPageCheck, 7, 0, 1, 4);
-
     wordsPerPageLabel = new QLabel();
     wordsPerPageLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     gridLayout->addWidget(wordsPerPageLabel, 8, 0, 1, 3);
@@ -165,12 +159,24 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, int w
     charactersPerPageEdit->setMaximumWidth(60);
     charactersPerPageEdit->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     charactersPerPageEdit->setText(QString::number(charactersPerPage));
+    charactersPerPageEdit->setEnabled(false);
     charactersPerPageEdit->setAlignment(Qt::AlignCenter);
     charactersPerPageEdit->setValidator(new QRegularExpressionValidator(QRegularExpression("[1-9]\\d{0,6}")));
     connect(charactersPerPageEdit, &QLineEdit::inputRejected, charactersPerPageEdit, [=]() {charactersPerPageEdit->setText(QString::number(charactersPerPage));});
     connect(charactersPerPageEdit, &QLineEdit::editingFinished,
             this, [=]() {emit charactersPerPageChangeRequested(charactersPerPageEdit->text().toInt());});
     gridLayout->addWidget(charactersPerPageEdit, 9, 3, 1, 1);
+
+
+    useCharactersPerPageCheck = new QCheckBox();
+    useCharactersPerPageCheck->setChecked(false);
+    connect(useCharactersPerPageCheck, &QCheckBox::clicked,
+            this, [=](bool checked) {
+                                        wordsPerPageEdit->setEnabled(!checked);
+                                        charactersPerPageEdit->setEnabled(checked);
+                                        emit useCharactersPerPage(checked);
+                                    });
+    gridLayout->addWidget(useCharactersPerPageCheck, 7, 0, 1, 4);
 
 
     // readtime statistics

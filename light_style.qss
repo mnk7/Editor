@@ -30,6 +30,11 @@ QLineEdit {
     selection-background-color: #9226CC;
 }
 
+QLineEdit:disabled {
+    color: #C0C0C0;
+    font-style: italic;
+}
+
 QToolBar {
     border-style: none;
 }

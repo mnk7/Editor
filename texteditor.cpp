@@ -193,6 +193,8 @@ void TextEditor::analyzeSelection() {
 
 TextEditor::TextData TextEditor::countWords(QString text) {
     TextData data;
+    int number_of_sentences = 1;
+    int number_of_syllables = 0;
 
     QRegularExpression wordRegEx("[^\\s]+");
     QRegularExpressionMatchIterator matchIterator = wordRegEx.globalMatch(text);
@@ -201,11 +203,67 @@ TextEditor::TextData TextEditor::countWords(QString text) {
         while(matchIterator.hasNext()) {
             QRegularExpressionMatch match = matchIterator.next();
 
+            QString word = match.captured(0);
+
+            int last_vocal_position = -2;
+            int notLetterorNumber = 0;
+
+            for(decltype(word.size()) i = 0; i < word.size(); ++i) {
+                if(!word[i].isLetterOrNumber()) {
+                    ++notLetterorNumber;
+                    continue;
+                }
+
+                QChar letter = word[i].toLower();
+
+                if(letter == "a"
+                    || letter == "ä"
+                    || letter == "e"
+                    || letter == "i"
+                    || letter == "o"
+                    || letter == "ö"
+                    || letter == "u"
+                    || letter == "ü"
+                    || letter == "y") {
+
+                    // don't count double vocals (ai, eu, ou, ...)
+                    // count tripple vocals (Eier, ...) as two syllables
+                    if(last_vocal_position != i - 1) {
+                        ++number_of_syllables;
+                        last_vocal_position = i;
+                    }
+                }
+            }
+
+            // don't add to statistics if there is no word.
+            if(notLetterorNumber == word.size()) {
+                continue;
+            }
+
+            // count words without vocals as one syllable
+            if(last_vocal_position == -2) {
+                ++number_of_syllables;
+            }
+
+            if(word.endsWith(".")) {
+                // we add 1 at the end, so don't count a last sentence that ends with '.'
+                if(matchIterator.hasNext()) {
+                    ++number_of_sentences;
+                }
+            }
+
             ++data.wordcount;
         }
     }
 
     data.charactercount = text.size();
+    data.avg_sentence_length = data.wordcount * 1.0 / number_of_sentences;
+
+    if(data.wordcount != 0) {
+        data.avg_word_length = number_of_syllables * 1.0 / data.wordcount;
+    } else {
+        data.avg_word_length = number_of_syllables;
+    }
 
     return data;
 }

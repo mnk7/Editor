@@ -32,7 +32,12 @@ MainWindow::MainWindow(QWidget *parent)
     // install translator
     translator = new QTranslator();
     locale = QLocale::system().name();
-    translator->load("Editor_" + locale + ".qm");
+    if(locale.startsWith("de")) {
+        translator->load(":translations/Editor_de_DE.qm");
+    } else {
+        translator->load(":translations/Editor_en_EN.qm");
+    }
+
     QApplication::installTranslator(translator);
 
     // TextEdit
@@ -270,22 +275,22 @@ void MainWindow::setAutosaveInterval(int autosaveInterval) {
 void MainWindow::statisticsChanged(const TextEditor::TextData data) {
     this->data = data;
 
-    if(pagecountFromCharacters) {
-        pagecount = data.charactercount / charactersPerPage;
-    } else {
-        pagecount = data.wordcount / wordsPerPage;
-    }
-
-    readtime = data.wordcount / wordsPerMinute;
-
     QString showntext = "";
 
+    // wordcount
     if(showWordcount) {
         if(data.wordcount == 1) {
             showntext += tr("1 word");
         } else {
             showntext += QString::number(data.wordcount) + tr(" words");
         }
+    }
+
+    // pagecount
+    if(pagecountFromCharacters) {
+        pagecount = data.charactercount / charactersPerPage;
+    } else {
+        pagecount = data.wordcount / wordsPerPage;
     }
 
     if(showPagecount) {
@@ -300,6 +305,9 @@ void MainWindow::statisticsChanged(const TextEditor::TextData data) {
         }
     }
 
+    // readtime
+    readtime = data.wordcount / wordsPerMinute;
+
     if(showReadtime) {
         if(showntext.size() > 0) {
             showntext += " - ";
@@ -307,6 +315,13 @@ void MainWindow::statisticsChanged(const TextEditor::TextData data) {
 
         showntext += QString::number(readtime / 60) + tr("h ")
                      + QString::number(readtime % 60) + tr("m");
+    }
+
+    // difficulty
+    if(locale.startsWith("de")) {
+        difficulty = static_cast<int>(180 - data.avg_sentence_length - (58.5 * data.avg_word_length));
+    } else {
+        difficulty = static_cast<int>(206.835 - (1.015 * data.avg_sentence_length) - (84.6 * data.avg_word_length));
     }
 
     if(showDifficulty) {
