@@ -8,6 +8,7 @@ MainWindow::MainWindow(QWidget *parent)
     this->grabGesture(Qt::PanGesture);
 
     textwidth = 80;
+    limitTextwidth = true;
 
     autosaveInterval = 3;
     useAutosave = true;
@@ -17,7 +18,7 @@ MainWindow::MainWindow(QWidget *parent)
     autosaveTimer->start(autosaveInterval * 1000000);
 
     wordsPerPage = 250;
-    charactersPerPage = 1800;
+    charactersPerPage = 1500;
     pagecount = 0;
     wordsPerMinute = 150;
     readtime = 0;
@@ -51,28 +52,6 @@ MainWindow::MainWindow(QWidget *parent)
     connect(findDock, &FindDock::replaceAllRequested, textEdit, &TextEditor::replaceAllRequested);
     this->addDockWidget(Qt::TopDockWidgetArea, findDock);
     findDock->setVisible(false);
-
-    // SettingsDock
-    settingsDock = new SettingsDock(this, locale, textwidth, wordsPerPage, charactersPerPage, wordsPerMinute, autosaveInterval);
-    this->addDockWidget(Qt::RightDockWidgetArea, settingsDock);
-    connect(settingsDock, &SettingsDock::lightThemeRequested, this, &MainWindow::setLightTheme);
-    connect(settingsDock, &SettingsDock::darkThemeRequested, this, &MainWindow::setDarkTheme);
-    connect(settingsDock, &SettingsDock::setEnableFixedTextwidthRequested, textEdit, &TextEditor::limitTextWidth);
-    connect(settingsDock, &SettingsDock::textwidthChangeRequested, this, &MainWindow::setTextWidth);
-    connect(settingsDock, &SettingsDock::fontChangeRequested, textEdit, &TextEditor::setFont);
-    connect(settingsDock, &SettingsDock::fontSizeChangeRequested, textEdit, &TextEditor::setFontSize);
-    connect(settingsDock, &SettingsDock::languageChangeRequested, this, &MainWindow::selectLanguage);
-    connect(settingsDock, &SettingsDock::showWordcountRequested, this, &MainWindow::setShowWordcount);
-    connect(settingsDock, &SettingsDock::showPagecountRequested, this, &MainWindow::setShowPagecount);
-    connect(settingsDock, &SettingsDock::showReadtimeRequested, this, &MainWindow::setShowReadtime);
-    connect(settingsDock, &SettingsDock::showDifficultyRequested, this, &MainWindow::setShowDifficulty);
-    connect(settingsDock, &SettingsDock::useCharactersPerPage, this, &MainWindow::setUseCharactersPerPage);
-    connect(settingsDock, &SettingsDock::wordsPerPageChangeRequested, this, &MainWindow::setWordsPerPage);
-    connect(settingsDock, &SettingsDock::charactersPerPageChangeRequested, this, &MainWindow::setCharactersPerPage);
-    connect(settingsDock, &SettingsDock::wordsPerMinuteChangeRequested, this, &MainWindow::setWordsPerMinute);
-    connect(settingsDock, &SettingsDock::setEnableAutosaveRequested, this, &MainWindow::setEnableAutosave);
-    connect(settingsDock, &SettingsDock::autosaveIntervalChangeRequested, this, &MainWindow::setAutosaveInterval);
-    settingsDock->setVisible(false);
 
     // ToolBar
     toolbar = new QToolBar(this);
@@ -129,8 +108,35 @@ MainWindow::MainWindow(QWidget *parent)
 
     this->addToolBar(toolbar);
 
-    this->retranslate();
-    this->setDarkTheme();
+    // read settings
+    font = textEdit->font();
+    fontsize = font.pointSize();
+
+    readSettings();
+
+    // SettingsDock
+    settingsDock = new SettingsDock(this, locale, textwidth, limitTextwidth, useAutosave, autosaveInterval,
+                                    font, fontsize, wordsPerPage, charactersPerPage, wordsPerMinute, showWordcount,
+                                    showPagecount, pagecountFromCharacters, showReadtime, showDifficulty);
+    this->addDockWidget(Qt::RightDockWidgetArea, settingsDock);
+    connect(settingsDock, &SettingsDock::lightThemeRequested, this, &MainWindow::setLightTheme);
+    connect(settingsDock, &SettingsDock::darkThemeRequested, this, &MainWindow::setDarkTheme);
+    connect(settingsDock, &SettingsDock::setEnableFixedTextwidthRequested, this, &MainWindow::setLimitTextwidth);
+    connect(settingsDock, &SettingsDock::textwidthChangeRequested, this, &MainWindow::setTextWidth);
+    connect(settingsDock, &SettingsDock::fontChangeRequested, this, &MainWindow::setFont);
+    connect(settingsDock, &SettingsDock::fontSizeChangeRequested, this, &MainWindow::setFontSize);
+    connect(settingsDock, &SettingsDock::languageChangeRequested, this, &MainWindow::selectLanguage);
+    connect(settingsDock, &SettingsDock::showWordcountRequested, this, &MainWindow::setShowWordcount);
+    connect(settingsDock, &SettingsDock::showPagecountRequested, this, &MainWindow::setShowPagecount);
+    connect(settingsDock, &SettingsDock::showReadtimeRequested, this, &MainWindow::setShowReadtime);
+    connect(settingsDock, &SettingsDock::showDifficultyRequested, this, &MainWindow::setShowDifficulty);
+    connect(settingsDock, &SettingsDock::useCharactersPerPage, this, &MainWindow::setUseCharactersPerPage);
+    connect(settingsDock, &SettingsDock::wordsPerPageChangeRequested, this, &MainWindow::setWordsPerPage);
+    connect(settingsDock, &SettingsDock::charactersPerPageChangeRequested, this, &MainWindow::setCharactersPerPage);
+    connect(settingsDock, &SettingsDock::wordsPerMinuteChangeRequested, this, &MainWindow::setWordsPerMinute);
+    connect(settingsDock, &SettingsDock::setEnableAutosaveRequested, this, &MainWindow::setEnableAutosave);
+    connect(settingsDock, &SettingsDock::autosaveIntervalChangeRequested, this, &MainWindow::setAutosaveInterval);
+    settingsDock->setVisible(false);
 }
 
 
@@ -170,21 +176,65 @@ void MainWindow::changeEvent(QEvent *event) {
 
 void MainWindow::readSettings() {
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
-    const QByteArray geometry = settings.value("geometry", QByteArray()).toByteArray();
-    if (geometry.isEmpty()) {
-        const QRect availableGeometry = screen()->availableGeometry();
-        this->resize(availableGeometry.width() / 3, availableGeometry.height() / 2);
-        this->move((availableGeometry.width() - width()) / 2,
-             (availableGeometry.height() - height()) / 2);
+    locale = settings.value("locale", locale).toString();
+    this->selectLanguage(locale);
+
+    useLightTheme = settings.value("use_light_theme", useLightTheme).toBool();
+    if(useLightTheme) {
+        this->setLightTheme();
     } else {
-        this->restoreGeometry(geometry);
+        this->setDarkTheme();
     }
+
+    textwidth = settings.value("textwidth", textwidth).toInt();
+    this->setTextWidth(textwidth);
+
+    limitTextwidth = settings.value("limit_textwidth", limitTextwidth).toBool();
+    textEdit->limitTextWidth(limitTextwidth);
+
+    QVariant fontvariant = settings.value("font", font);
+    font = fontvariant.value<QFont>();
+    textEdit->setFont(font);
+
+    fontsize = settings.value("fontsize", fontsize).toInt();
+    textEdit->setFontSize(fontsize);
+
+    autosaveInterval = settings.value("autosave_interval", autosaveInterval).toInt();
+    this->setAutosaveInterval(autosaveInterval);
+
+    useAutosave = settings.value("use_autosave", useAutosave).toBool();
+    this->setEnableAutosave(useAutosave);
+
+    wordsPerPage = settings.value("words_per_page", wordsPerPage).toInt();
+    charactersPerPage = settings.value("characters_per_page", charactersPerPage).toInt();
+    wordsPerMinute = settings.value("characters_per_minute", wordsPerMinute).toInt();
+    showWordcount = settings.value("show_wordcount", showWordcount).toBool();
+    showPagecount = settings.value("show_pagecount", showPagecount).toBool();
+    pagecountFromCharacters = settings.value("pagecount_from_characters", pagecountFromCharacters).toBool();
+    showReadtime = settings.value("show_readtime", showReadtime).toBool();
+    showDifficulty = settings.value("show_difficulty", showDifficulty).toBool();
+    this->statisticsChanged(data);
 }
 
 
 void MainWindow::writeSettings() {
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
-    settings.setValue("geometry", saveGeometry());
+    settings.setValue("locale", locale);
+    settings.setValue("use_light_theme", useLightTheme);
+    settings.setValue("limit_textwidth", limitTextwidth);
+    settings.setValue("font", font);
+    settings.setValue("fontsize", fontsize);
+    settings.setValue("textwidth", textwidth);
+    settings.setValue("autosave_interval", autosaveInterval);
+    settings.setValue("use_autosave", useAutosave);
+    settings.setValue("words_per_page", wordsPerPage);
+    settings.setValue("characters_per_page", charactersPerPage);
+    settings.setValue("words_per_minute", wordsPerMinute);
+    settings.setValue("show_wordcount", showWordcount);
+    settings.setValue("show_pagecount", showPagecount);
+    settings.setValue("pagecount_from_characters", pagecountFromCharacters);
+    settings.setValue("show_readtime", showReadtime);
+    settings.setValue("show_difficulty", showDifficulty);
 }
 
 
@@ -251,6 +301,8 @@ void MainWindow::setDarkTheme() {
     QFile style(":/styles/dark_style.qss");
     style.open(QFile::ReadOnly);
     this->setStyleSheet(style.readAll());
+
+    useLightTheme = false;
 }
 
 
@@ -258,6 +310,8 @@ void MainWindow::setLightTheme() {
     QFile style(":/styles/light_style.qss");
     style.open(QFile::ReadOnly);
     this->setStyleSheet(style.readAll());
+
+    useLightTheme = true;
 }
 
 

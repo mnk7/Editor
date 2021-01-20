@@ -10,6 +10,8 @@ int main(int argc, char *argv[])
 
     QApplication a(argc, argv);
     a.setWindowIcon(QIcon(":/Icon.png"));
+    a.setOrganizationName("mnk7");
+    a.setApplicationName("Editor");
 
     MainWindow w;
     w.show();

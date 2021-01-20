@@ -20,7 +20,7 @@ TextEditor::TextEditor(QWidget * parent)
     highlighter = new MDHighlighter(this->document());
     highlighter->setDefaultFont(this->font());
 
-    connect(this, &TextEditor::textChanged, this, &TextEditor::analyzeText);
+    connect(this->document(), &QTextDocument::contentsChanged, this, &TextEditor::analyzeText);
     connect(this, &TextEditor::selectionChanged, this, &TextEditor::analyzeSelection);
 }
 
@@ -44,7 +44,7 @@ bool TextEditor::event(QEvent *event) {
 
         return true;
     }**/
-    case QEvent::Gesture: {
+    /**case QEvent::Gesture: {
         QGestureEvent *gestureEvent = static_cast<QGestureEvent*>(event);
         if(QGesture *gesture = gestureEvent->gesture(Qt::PanGesture)) {
             QPanGesture *panGesture = static_cast<QPanGesture*>(gesture);
@@ -56,7 +56,7 @@ bool TextEditor::event(QEvent *event) {
 
         event->accept();
         return true;
-    }
+    }**/
     default:
         return QPlainTextEdit::event(event);
     }
@@ -184,6 +184,7 @@ void TextEditor::analyzeText() {
 void TextEditor::analyzeSelection() {
     if(this->textCursor().hasSelection()) {
         QString selection = this->textCursor().selectedText();
+        selection.replace(QChar(0x2029), '\n');
         emit textAnalyzed(countWords(selection));
     } else {
         emit textAnalyzed(data);

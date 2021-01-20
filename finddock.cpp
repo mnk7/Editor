@@ -23,6 +23,7 @@ FindDock::FindDock(QWidget *parent)
     this->titleBarWidget()->layout()->addWidget(findButton);
 
     findEdit = new QLineEdit();
+    findEdit->setFocusPolicy(Qt::StrongFocus);
     connect(findEdit, &QLineEdit::returnPressed, this, &FindDock::requestFind);
     this->titleBarWidget()->layout()->addWidget(findEdit);
 
@@ -50,6 +51,12 @@ FindDock::FindDock(QWidget *parent)
     replaceAll->setFlat(true);
     connect(replaceAll, &QPushButton::pressed, this, &FindDock::requestReplaceAll);
     this->widget()->layout()->addWidget(replaceAll);
+
+    connect(this, &FindDock::visibilityChanged, this, [=](bool visibility) {
+                                                            if(visibility) {
+                                                                findEdit->setFocus();
+                                                            }
+                                                       });
 
     retranslate();
 }

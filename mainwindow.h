@@ -33,14 +33,20 @@ protected:
 private:
     QString currentFile;
 
-    // the number of characters in a line
-    int textwidth;
-
     QTimer *autosaveTimer;
     int autosaveInterval;
     bool useAutosave;
 
     QString locale;
+
+    bool useLightTheme;
+
+    // the number of characters in a line
+    int textwidth;
+    bool limitTextwidth;
+
+    QFont font;
+    int fontsize;
 
     TextEditor::TextData data;
     int wordsPerPage;
@@ -73,7 +79,10 @@ private:
     QLabel *statisticsLabel;
     QAction *optionsAction;
 
+    void setLimitTextwidth(bool limitTextwidth) {this->limitTextwidth = limitTextwidth; this->textEdit->limitTextWidth(limitTextwidth);}
     void setTextWidth(int textwidth) {this->textwidth = textwidth; this->textwidth = textEdit->setTextWidth(textwidth);}
+    void setFont(QFont font) {this->font = font; this->textEdit->setFont(font);}
+    void setFontSize(int fontsize) {this->fontsize = fontsize; this->textEdit->setFontSize(fontsize);}
     void setShowWordcount(bool showWordcount) {this->showWordcount = showWordcount; statisticsChanged(data);}
     void setShowPagecount(bool showPagecount) {this->showPagecount = showPagecount; statisticsChanged(data);}
     void setpagecountFromCharacters(bool pageCountFromCharacters) {this->pagecountFromCharacters = pageCountFromCharacters; statisticsChanged(data);}
