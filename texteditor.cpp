@@ -20,7 +20,12 @@ TextEditor::TextEditor(QWidget * parent)
     highlighter = new MDHighlighter(this->document());
     highlighter->setDefaultFont(this->font());
 
-    connect(this->document(), &QTextDocument::contentsChanged, this, &TextEditor::analyzeText);
+    analyzeTimer = new QTimer(this);
+    connect(analyzeTimer, &QTimer::timeout, this, &TextEditor::analyzeText);
+    analyzeTimer->setSingleShot(true);
+    analyzeTimer->setInterval(3000);
+
+    connect(this, &TextEditor::textChanged, analyzeTimer, [=]() {analyzeTimer->start();});
     connect(this, &TextEditor::selectionChanged, this, &TextEditor::analyzeSelection);
 }
 

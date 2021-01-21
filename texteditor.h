@@ -6,6 +6,7 @@
 #include <QCommonStyle>
 #include <QGestureEvent>
 #include <QMessageBox>
+#include <QTimer>
 
 #include "mdhighlighter.h"
 
@@ -52,6 +53,8 @@ private:
     TextData data;
 
     MDHighlighter *highlighter;
+
+    QTimer *analyzeTimer;
 
     TextData countWords(QString text);
 };

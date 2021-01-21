@@ -15,7 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     autosaveTimer = new QTimer(this);
     connect(autosaveTimer, &QTimer::timeout, this, &MainWindow::save);
-    autosaveTimer->start(autosaveInterval * 1000000);
+    autosaveTimer->start(autosaveInterval * 60000);
 
     wordsPerPage = 250;
     charactersPerPage = 1500;
@@ -322,7 +322,7 @@ void MainWindow::setAutosaveInterval(int autosaveInterval) {
         this->autosaveInterval = autosaveInterval;
     }
 
-    autosaveTimer->start(autosaveInterval * 1000000);
+    autosaveTimer->start(autosaveInterval * 60000);
 }
 
 
