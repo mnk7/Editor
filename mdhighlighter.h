@@ -23,14 +23,23 @@ private:
     QTextCharFormat boldFormat;
     QTextCharFormat boldItalicFormat;
     QTextCharFormat commentFormat;
+    QTextCharFormat linkAndImageFormat;
     QTextCharFormat htmlFormat;
 
-    QRegularExpression headerRegEx;
+    QRegExp header1RegEx;
+    QRegExp header2RegEx;
+    QRegExp lineStarRegEx;
+    QRegExp lineDashRegEx;
+    QRegExp lineUnderScoreRegEx;
     QRegularExpression italicRegEx;
     QRegularExpression boldRegEx;
     QRegularExpression boldItalicRegEx;
     QRegularExpression commentRegEx;
+    QRegularExpression linkUseRegEx;
+    QRegularExpression imageUseRegEx;
+    QRegExp linkDefinitionRegEx;
     QRegularExpression htmlRegEx;
+    QRegularExpression linkRegEx;
 };
 
 #endif // MDHIGHLIGHTER_H

@@ -19,6 +19,12 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     connect(autosaveTimer, &QTimer::timeout, this, &MainWindow::save);
     autosaveTimer->start(autosaveInterval * 60000);
 
+    connect(QApplication::instance(), &QApplication::aboutToQuit, this, [=]() {
+                                                                            if(data.wordcount >  0) {
+                                                                                this->save();
+                                                                            }
+                                                                        });
+
     wordsPerPage = 250;
     charactersPerPage = 1500;
     pagecount = 0;
@@ -113,6 +119,10 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     // read settings
     font = textEdit->font();
     fontsize = font.pointSize();
+    if(fontsize < 0) {
+        fontsize = this->fontInfo().pointSize();
+    }
+
 
     readSettings();
 
@@ -390,6 +400,14 @@ void MainWindow::statisticsChanged(const TextEditor::TextData data) {
         difficulty = static_cast<int>(180 - data.avg_sentence_length - (58.5 * data.avg_word_length));
     } else {
         difficulty = static_cast<int>(206.835 - (1.015 * data.avg_sentence_length) - (84.6 * data.avg_word_length));
+    }
+
+    if(difficulty > 100) {
+        difficulty = 100;
+    }
+
+    if(difficulty < 0) {
+        difficulty = 0;
     }
 
     if(showDifficulty) {
