@@ -2,6 +2,7 @@
 #define SETTINGSDOCK_H
 
 #include <QDockWidget>
+#include <QScrollArea>
 #include <QGridLayout>
 #include <QCheckBox>
 #include <QPushButton>
@@ -39,7 +40,11 @@ signals:
     void setEnableAutosaveRequested(bool);
     void autosaveIntervalChangeRequested(int);
 
+    void settingsChangeRequested();
+
 private:
+    QScrollArea *scrollArea;
+
     QCheckBox *enableTextwidthCheck;
     QLabel *textwidthLabel;
 

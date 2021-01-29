@@ -136,10 +136,10 @@ void TextEditor::setFontSize(int fontsize) {
 
 
 void TextEditor::findRequested(const QString &text) {
-    if(!this->find(text)) {
+    if(!this->find(text, QTextDocument::FindCaseSensitively)) {
         this->moveCursor(QTextCursor::Start);
 
-        if(!this->find(text)) {
+        if(!this->find(text, QTextDocument::FindCaseSensitively)) {
             QMessageBox::information(this, tr("Find Results"), text + tr(" not found."));
         }
     }
@@ -148,10 +148,10 @@ void TextEditor::findRequested(const QString &text) {
 
 void TextEditor::replaceRequested(const QString &text, const QString &replacement) {
     if(!(this->textCursor().hasSelection() && this->textCursor().selectedText() == text)) {
-        if(!this->find(text)) {
+        if(!this->find(text, QTextDocument::FindCaseSensitively)) {
             this->moveCursor(QTextCursor::Start);
 
-            if(!this->find(text)) {
+            if(!this->find(text, QTextDocument::FindCaseSensitively)) {
                 QMessageBox::information(this, tr("Replace Results"), text + tr(" not found."));
                 return;
             }
@@ -160,9 +160,9 @@ void TextEditor::replaceRequested(const QString &text, const QString &replacemen
 
     this->textCursor().insertText(replacement);
 
-    if(!this->find(text)) {
+    if(!this->find(text, QTextDocument::FindCaseSensitively)) {
         this->moveCursor(QTextCursor::Start);
-        this->find(text);
+        this->find(text, QTextDocument::FindCaseSensitively);
     }
 }
 
@@ -172,7 +172,7 @@ void TextEditor::replaceAllRequested(const QString &text, const QString &replace
 
     this->textCursor().beginEditBlock();
 
-    while(this->find(text)) {
+    while(this->find(text, QTextDocument::FindCaseSensitively)) {
         this->textCursor().insertText(replacement);
     }
 

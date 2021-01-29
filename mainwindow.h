@@ -23,7 +23,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    MainWindow(QWidget *parent = nullptr);
+    MainWindow(QString currentFile = "", QWidget *parent = nullptr);
     ~MainWindow();
 
 protected:
@@ -97,6 +97,7 @@ private:
     void retranslate();
     void readSettings();
     void writeSettings();
+    void open(QString &filename);
     void open();
     void save();
     void saveas();

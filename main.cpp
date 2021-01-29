@@ -13,7 +13,13 @@ int main(int argc, char *argv[])
     a.setOrganizationName("mnk7");
     a.setApplicationName("Editor");
 
-    MainWindow w;
+    QString currentFile;
+
+    if(argc > 1) {
+        currentFile = a.arguments().at(1);
+    }
+
+    MainWindow w(currentFile);
     w.show();
     return a.exec();
 }

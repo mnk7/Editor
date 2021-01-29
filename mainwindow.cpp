@@ -1,11 +1,13 @@
 #include "mainwindow.h"
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(QString currentFile, QWidget *parent)
     : QMainWindow(parent)
 {
     this->setMinimumSize(500, 400);
     this->setUnifiedTitleAndToolBarOnMac(true);
     this->grabGesture(Qt::PanGesture);
+
+    this->currentFile = currentFile;
 
     textwidth = 80;
     limitTextwidth = true;
@@ -64,7 +66,7 @@ MainWindow::MainWindow(QWidget *parent)
 
     openAction = new QAction(this);
     openAction->setShortcut(QKeySequence::Open);
-    connect(openAction, &QAction::triggered, this, &MainWindow::open);
+    connect(openAction, &QAction::triggered, this, [=]() {this->open();});
     toolbar->addAction(openAction);
 
     saveAction = new QAction(this);
@@ -136,7 +138,12 @@ MainWindow::MainWindow(QWidget *parent)
     connect(settingsDock, &SettingsDock::wordsPerMinuteChangeRequested, this, &MainWindow::setWordsPerMinute);
     connect(settingsDock, &SettingsDock::setEnableAutosaveRequested, this, &MainWindow::setEnableAutosave);
     connect(settingsDock, &SettingsDock::autosaveIntervalChangeRequested, this, &MainWindow::setAutosaveInterval);
+    connect(settingsDock, &SettingsDock::settingsChangeRequested, this, &MainWindow::writeSettings);
     settingsDock->setVisible(false);
+
+    if(currentFile != "") {
+        open(currentFile);
+    }
 }
 
 
@@ -238,10 +245,8 @@ void MainWindow::writeSettings() {
 }
 
 
-void MainWindow::open() {
-    currentFile = QFileDialog::getOpenFileName(this, tr("Open"));
-
-    QFile file(currentFile);
+void MainWindow::open(QString &filename) {
+    QFile file(filename);
 
     if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
         QMessageBox::warning(this, tr("Warning"), tr("Cannot open file: ") + file.errorString());
@@ -253,6 +258,15 @@ void MainWindow::open() {
     textEdit->setPlainText(in.readAll());
 
     file.close();
+
+    this->currentFile = filename;
+}
+
+
+void MainWindow::open() {
+    currentFile = QFileDialog::getOpenFileName(this, tr("Open"));
+
+    open(currentFile);
 }
 
 
