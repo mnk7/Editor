@@ -1,6 +1,6 @@
 #include "settingsdock.h"
 
-SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool limitTextwidth, bool useAutosave, int autosaveInterval, QFont font, int fontsize, int wordsPerPage,
+SettingsDock::SettingsDock(QWidget *parent, QString locale, bool useSpellChecker, int textwidth, bool limitTextwidth, bool useAutosave, int autosaveInterval, QFont font, int fontsize, int wordsPerPage,
                            int charactersPerPage, int wordsPerMinute, bool showWordcount, bool showPagecount, bool pagecountFromCharacters, bool showReadtime, bool showDifficulty)
     : QDockWidget(parent)
 {
@@ -67,6 +67,14 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
     gridLayout->addWidget(languageSelector, 1, 0, 1, 4);
 
 
+    // enable spellchecking
+    useSpellCheckerCheck = new QCheckBox();
+    useSpellCheckerCheck->setChecked(useSpellChecker);
+    connect(useSpellCheckerCheck, &QCheckBox::clicked,
+            this, [=](bool checked) {emit useSpellCheckerRequested(checked); emit settingsChangeRequested();});
+    gridLayout->addWidget(useSpellCheckerCheck, 2, 0, 1, 4);
+
+
     // select font
     QFontComboBox *fontComboBox = new QFontComboBox();
     fontComboBox->setCurrentFont(font);
@@ -75,7 +83,7 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
     fontComboBox->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
     connect(fontComboBox, &QFontComboBox::currentFontChanged,
             this, [=](const QFont font) {emit fontChangeRequested(font); emit settingsChangeRequested();});
-    gridLayout->addWidget(fontComboBox, 2, 0, 1, 3);
+    gridLayout->addWidget(fontComboBox, 3, 0, 1, 3);
 
     QComboBox *fontSizeSelector = new QComboBox();
     fontSizeSelector->setEditable(false);
@@ -96,7 +104,7 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
     fontSizeSelector->setCurrentText(QString::number(fontsize));
     connect(fontSizeSelector, QOverload<int>::of(&QComboBox::currentIndexChanged),
             this, [=](int index) {emit fontSizeChangeRequested(fontSizeSelector->itemText(index).toInt()); emit settingsChangeRequested();});
-    gridLayout->addWidget(fontSizeSelector, 2, 3, 1, 1);
+    gridLayout->addWidget(fontSizeSelector, 3, 3, 1, 1);
 
 
     // enabling limited textwidth
@@ -104,13 +112,13 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
     enableTextwidthCheck->setChecked(limitTextwidth);
     connect(enableTextwidthCheck, &QCheckBox::clicked,
             this, [=](bool checked) {emit setEnableFixedTextwidthRequested(checked); emit settingsChangeRequested();});
-    gridLayout->addWidget(enableTextwidthCheck, 3, 0, 1, 4);
+    gridLayout->addWidget(enableTextwidthCheck, 4, 0, 1, 4);
 
 
     // set text width
     textwidthLabel = new QLabel();
     textwidthLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    gridLayout->addWidget(textwidthLabel, 4, 0, 1, 3);
+    gridLayout->addWidget(textwidthLabel, 5, 0, 1, 3);
 
     QLineEdit *textwidthEdit = new QLineEdit();
     textwidthEdit->setMaxLength(4);
@@ -122,7 +130,7 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
     connect(textwidthEdit, &QLineEdit::inputRejected, textwidthEdit, [=]() {textwidthEdit->setText(QString::number(textwidth));});
     connect(textwidthEdit, &QLineEdit::editingFinished,
             this, [=]() {emit textwidthChangeRequested(textwidthEdit->text().toInt()); emit settingsChangeRequested();});
-    gridLayout->addWidget(textwidthEdit, 4, 3, 1, 1);
+    gridLayout->addWidget(textwidthEdit, 5, 3, 1, 1);
 
 
     // select displayed statistics
@@ -130,7 +138,7 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
     wordcountCheck->setChecked(showWordcount);
     connect(wordcountCheck, &QCheckBox::clicked,
             this, [=](bool checked) {emit showWordcountRequested(checked); emit settingsChangeRequested();});
-    gridLayout->addWidget(wordcountCheck, 5, 0, 1, 4);
+    gridLayout->addWidget(wordcountCheck, 6, 0, 1, 4);
 
 
     // page statistics
@@ -138,11 +146,11 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
     pagecountCheck->setChecked(showPagecount);
     connect(pagecountCheck, &QCheckBox::clicked,
             this, [=](bool checked) {emit showPagecountRequested(checked); emit settingsChangeRequested();});
-    gridLayout->addWidget(pagecountCheck, 6, 0, 1, 4);
+    gridLayout->addWidget(pagecountCheck, 7, 0, 1, 4);
 
     wordsPerPageLabel = new QLabel();
     wordsPerPageLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    gridLayout->addWidget(wordsPerPageLabel, 8, 0, 1, 3);
+    gridLayout->addWidget(wordsPerPageLabel, 9, 0, 1, 3);
 
     QLineEdit *wordsPerPageEdit = new QLineEdit();
     wordsPerPageEdit->setMaxLength(4);
@@ -155,12 +163,12 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
     connect(wordsPerPageEdit, &QLineEdit::inputRejected, wordsPerPageEdit, [=]() {wordsPerPageEdit->setText(QString::number(wordsPerPage));});
     connect(wordsPerPageEdit, &QLineEdit::editingFinished,
             this, [=]() {emit wordsPerPageChangeRequested(wordsPerPageEdit->text().toInt()); emit settingsChangeRequested();});
-    gridLayout->addWidget(wordsPerPageEdit, 8, 3, 1, 1);
+    gridLayout->addWidget(wordsPerPageEdit, 9, 3, 1, 1);
 
 
     charactersPerPageLabel = new QLabel();
     charactersPerPageLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    gridLayout->addWidget(charactersPerPageLabel, 9, 0, 1, 3);
+    gridLayout->addWidget(charactersPerPageLabel, 10, 0, 1, 3);
 
     QLineEdit *charactersPerPageEdit = new QLineEdit();
     charactersPerPageEdit->setMaxLength(4);
@@ -173,7 +181,7 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
     connect(charactersPerPageEdit, &QLineEdit::inputRejected, charactersPerPageEdit, [=]() {charactersPerPageEdit->setText(QString::number(charactersPerPage));});
     connect(charactersPerPageEdit, &QLineEdit::editingFinished,
             this, [=]() {emit charactersPerPageChangeRequested(charactersPerPageEdit->text().toInt()); emit settingsChangeRequested();});
-    gridLayout->addWidget(charactersPerPageEdit, 9, 3, 1, 1);
+    gridLayout->addWidget(charactersPerPageEdit, 10, 3, 1, 1);
 
 
     useCharactersPerPageCheck = new QCheckBox();
@@ -185,7 +193,7 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
                                         emit useCharactersPerPage(checked);
                                         emit settingsChangeRequested();
                                     });
-    gridLayout->addWidget(useCharactersPerPageCheck, 7, 0, 1, 4);
+    gridLayout->addWidget(useCharactersPerPageCheck, 8, 0, 1, 4);
 
 
     // readtime statistics
@@ -193,11 +201,11 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
     readtimeCheck->setChecked(showReadtime);
     connect(readtimeCheck, &QCheckBox::clicked,
             this, [=](bool checked) {emit showReadtimeRequested(checked); emit settingsChangeRequested();});
-    gridLayout->addWidget(readtimeCheck, 10, 0, 1, 4);
+    gridLayout->addWidget(readtimeCheck, 11, 0, 1, 4);
 
     wordsPerMinuteLabel = new QLabel();
     wordsPerMinuteLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    gridLayout->addWidget(wordsPerMinuteLabel, 11, 0, 1, 3);
+    gridLayout->addWidget(wordsPerMinuteLabel, 12, 0, 1, 3);
 
     QLineEdit *wordsPerMinuteEdit = new QLineEdit();
     wordsPerMinuteEdit->setMaxLength(4);
@@ -209,7 +217,7 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
     connect(wordsPerMinuteEdit, &QLineEdit::inputRejected, wordsPerMinuteEdit, [=]() {wordsPerMinuteEdit->setText(QString::number(wordsPerMinute));});
     connect(wordsPerMinuteEdit, &QLineEdit::editingFinished,
             this, [=]() {emit wordsPerMinuteChangeRequested(wordsPerMinuteEdit->text().toInt()); emit settingsChangeRequested();});
-    gridLayout->addWidget(wordsPerMinuteEdit, 11, 3, 1, 1);
+    gridLayout->addWidget(wordsPerMinuteEdit, 12, 3, 1, 1);
 
 
     // difficulty statistics
@@ -217,7 +225,7 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
     difficultyCheck->setChecked(showDifficulty);
     connect(difficultyCheck, &QCheckBox::clicked,
             this, [=](bool checked) {emit showDifficultyRequested(checked); emit settingsChangeRequested();});
-    gridLayout->addWidget(difficultyCheck, 12, 0, 1, 4);
+    gridLayout->addWidget(difficultyCheck, 13, 0, 1, 4);
 
 
     // enable auto-save
@@ -225,13 +233,13 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
     enableAutosaveCheck->setChecked(useAutosave);
     connect(enableAutosaveCheck, &QCheckBox::clicked,
             this, [=](bool checked) {emit setEnableAutosaveRequested(checked); emit settingsChangeRequested();});
-    gridLayout->addWidget(enableAutosaveCheck, 13, 0, 1, 4);
+    gridLayout->addWidget(enableAutosaveCheck, 14, 0, 1, 4);
 
 
     // auto-save interval
     autosaveIntervalLabel = new QLabel();
     autosaveIntervalLabel->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum);
-    gridLayout->addWidget(autosaveIntervalLabel, 14, 0, 1, 3);
+    gridLayout->addWidget(autosaveIntervalLabel, 15, 0, 1, 3);
 
     QLineEdit *autosaveEdit = new QLineEdit();
     autosaveEdit->setMaxLength(4);
@@ -243,7 +251,7 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
     connect(autosaveEdit, &QLineEdit::inputRejected, autosaveEdit, [=]() {autosaveEdit->setText(QString::number(autosaveInterval));});
     connect(autosaveEdit, &QLineEdit::editingFinished,
             this, [=]() {emit autosaveIntervalChangeRequested(autosaveEdit->text().toInt()); emit settingsChangeRequested();});
-    gridLayout->addWidget(autosaveEdit, 14, 3, 1, 1);
+    gridLayout->addWidget(autosaveEdit, 15, 3, 1, 1);
 
     gridLayout->setRowStretch(20, 100);
 
@@ -252,6 +260,7 @@ SettingsDock::SettingsDock(QWidget *parent, QString locale, int textwidth, bool 
 
 
 void SettingsDock::retranslate() {
+    useSpellCheckerCheck->setText(tr("use spellchecker"));
     enableTextwidthCheck->setText(tr("limit editor width"));
     textwidthLabel->setText(tr("characters per line:"));
     wordcountCheck->setText(tr("show word count"));

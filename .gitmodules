@@ -1,0 +1,12 @@
+[submodule "qtspell"]
+	path = qtspell
+	url = https://github.com/manisandro/qtspell.git
+[submodule "enchant"]
+	path = enchant
+	url = https://github.com/AbiWord/enchant.git
+[submodule "hunspell"]
+	path = hunspell
+	url = https://github.com/hunspell/hunspell.git
+[submodule "dictionaries"]
+	path = dictionaries
+	url = https://github.com/LibreOffice/dictionaries.git

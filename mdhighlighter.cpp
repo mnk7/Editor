@@ -2,17 +2,29 @@
 
 #include <QDebug>
 
-MDHighlighter::MDHighlighter(QTextDocument *document)
+MDHighlighter::MDHighlighter(QTextDocument *document, SpellChecker *spellchecker)
     : QSyntaxHighlighter(document)
 {
+    this->spellchecker = spellchecker;
+
+    spellErrorFormat.setForeground(Qt::white);
+    spellErrorFormat.setBackground(Qt::red);
+
     headerFormat.setForeground(Qt::gray);
+
     italicFormat.setFontItalic(true);
+
     boldFormat.setFontWeight(QFont::Bold);
+
     boldItalicFormat.setFontItalic(true);
     boldItalicFormat.setFontWeight(QFont::Bold);
+
     commentFormat.setForeground(Qt::gray);
+
     linkAndImageFormat.setForeground(QColor(100, 165, 229));
+
     htmlFormat.setForeground(Qt::red);
+
 
     header1RegEx.setPattern("=[=]+");
     header2RegEx.setPattern("-[-]+");
@@ -28,6 +40,7 @@ MDHighlighter::MDHighlighter(QTextDocument *document)
     linkDefinitionRegEx.setPattern("[\\s]{0,3}\\[[^\\]]+\\]:.*");
     htmlRegEx.setPattern("\\<[^\\>]+\\>[^\\<]+\\<\\/[^\\>]+\\>");
     linkRegEx.setPattern("\\<[^\\>]+\\>");
+    wordRegEx.setPattern("[^\\s]+");
 }
 
 
@@ -74,7 +87,7 @@ void MDHighlighter::highlightBlock(const QString &text) {
     }
 
     // indented blocks
-    if(text.startsWith(">") || text.startsWith("\t") || text.startsWith("    ")) {
+    if(text.startsWith(">")) {
         this->setFormat(0, text.size(), commentFormat);
     }
 
@@ -85,35 +98,7 @@ void MDHighlighter::highlightBlock(const QString &text) {
         return;
     }
 
-    if(linkDefinitionRegEx.exactMatch(text)) {
-        this->setFormat(0, text.size(), linkAndImageFormat);
-    }
-
-    QRegularExpressionMatchIterator matchIterator = linkUseRegEx.globalMatch(text);
-    while (matchIterator.hasNext()) {
-        QRegularExpressionMatch match = matchIterator.next();
-        this->setFormat(match.capturedStart(), match.capturedLength(), linkAndImageFormat);
-    }
-
-    matchIterator = imageUseRegEx.globalMatch(text);
-    while (matchIterator.hasNext()) {
-        QRegularExpressionMatch match = matchIterator.next();
-        this->setFormat(match.capturedStart(), match.capturedLength(), linkAndImageFormat);
-    }
-
-    matchIterator = commentRegEx.globalMatch(text);
-    while (matchIterator.hasNext()) {
-        QRegularExpressionMatch match = matchIterator.next();
-        this->setFormat(match.capturedStart(), match.capturedLength(), commentFormat);
-    }
-
-    matchIterator = htmlRegEx.globalMatch(text);
-    while (matchIterator.hasNext()) {
-        QRegularExpressionMatch match = matchIterator.next();
-        this->setFormat(match.capturedStart(), match.capturedLength(), htmlFormat);
-    }
-
-    matchIterator = italicRegEx.globalMatch(text);
+    QRegularExpressionMatchIterator matchIterator = italicRegEx.globalMatch(text);
     while (matchIterator.hasNext()) {
         QRegularExpressionMatch match = matchIterator.next();
         this->setFormat(match.capturedStart(), match.capturedLength(), italicFormat);
@@ -131,9 +116,61 @@ void MDHighlighter::highlightBlock(const QString &text) {
         this->setFormat(match.capturedStart(), match.capturedLength(), boldItalicFormat);
     }
 
+    if(useSpellChecker) {
+        matchIterator = wordRegEx.globalMatch(text);
+        while (matchIterator.hasNext()) {
+            QRegularExpressionMatch match = matchIterator.next();
+            QString word = match.captured(0);
+            QString cleanword = "";
+
+            // clean the word from all non-literal characters
+            for(decltype (word.size()) i = 0; i < word.size(); ++i) {
+                if(word[i].isLetter()) {
+                    cleanword.append(word[i]);
+                }
+            }
+
+            if(cleanword.size() == 0) {
+                continue;
+            }
+
+            if(!spellchecker->spell(cleanword)) {
+                this->setFormat(match.capturedStart(), match.capturedLength(), spellErrorFormat);
+            }
+        }
+    }
+
+    if(linkDefinitionRegEx.exactMatch(text)) {
+        this->setFormat(0, text.size(), linkAndImageFormat);
+    }
+
+    matchIterator = linkUseRegEx.globalMatch(text);
+    while (matchIterator.hasNext()) {
+        QRegularExpressionMatch match = matchIterator.next();
+        this->setFormat(match.capturedStart(), match.capturedLength(), linkAndImageFormat);
+    }
+
+    matchIterator = imageUseRegEx.globalMatch(text);
+    while (matchIterator.hasNext()) {
+        QRegularExpressionMatch match = matchIterator.next();
+        this->setFormat(match.capturedStart(), match.capturedLength(), linkAndImageFormat);
+    }
+
+    matchIterator = commentRegEx.globalMatch(text);
+    while (matchIterator.hasNext()) {
+        QRegularExpressionMatch match = matchIterator.next();
+        this->setFormat(match.capturedStart(), match.capturedLength(), commentFormat);
+    }
+
     matchIterator = linkRegEx.globalMatch(text);
     while (matchIterator.hasNext()) {
         QRegularExpressionMatch match = matchIterator.next();
         this->setFormat(match.capturedStart(), match.capturedLength(), linkAndImageFormat);
+    }
+
+    matchIterator = htmlRegEx.globalMatch(text);
+    while (matchIterator.hasNext()) {
+        QRegularExpressionMatch match = matchIterator.next();
+        this->setFormat(match.capturedStart(), match.capturedLength(), htmlFormat);
     }
 }

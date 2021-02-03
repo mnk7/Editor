@@ -165,6 +165,10 @@
         <source>auto-save interval (min):</source>
         <translation>auto save interval (min):</translation>
     </message>
+    <message>
+        <source>use spellchecker</source>
+        <translation>use spellchecker</translation>
+    </message>
 </context>
 <context>
     <name>TextEditor</name>

@@ -20,7 +20,7 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     autosaveTimer->start(autosaveInterval * 60000);
 
     connect(QApplication::instance(), &QApplication::aboutToQuit, this, [=]() {
-                                                                            if(data.wordcount >  0) {
+                                                                            if(textEdit->toPlainText().size() > 0) {
                                                                                 this->save();
                                                                             }
                                                                         });
@@ -41,16 +41,23 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     // install translator
     translator = new QTranslator();
     locale = QLocale::system().name();
-    if(locale.startsWith("de")) {
-        translator->load(":translations/Editor_de_DE.qm");
-    } else {
-        translator->load(":translations/Editor_en_EN.qm");
+
+    // SpellChecker
+    useSpellChecker = true;
+
+    if (temporaryDictDir.isValid()) {
+        QFile::copy(":/dictionaries/dictionaries/dictionaries/en/index.aff", temporaryDictDir.path() + "/en_index.aff");
+        QFile::copy(":/dictionaries/dictionaries/dictionaries/en/index.dic", temporaryDictDir.path() + "/en_index.dic");
+        QFile::copy(":/dictionaries/dictionaries/dictionaries/de/index.aff", temporaryDictDir.path() + "/de_index.aff");
+        QFile::copy(":/dictionaries/dictionaries/dictionaries/de/index.dic", temporaryDictDir.path() + "/de_index.dic");
     }
 
-    QApplication::installTranslator(translator);
+    // have to request WRITE_EXTERNAL_STORAGE for Android
+    //QString applicationDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
+    spellchecker = new SpellChecker(getDictionary(locale), "");
 
     // TextEdit
-    textEdit = new TextEditor(this);
+    textEdit = new TextEditor(this, spellchecker);
     this->setCentralWidget(textEdit);
 
     // FindDock
@@ -72,7 +79,12 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
 
     openAction = new QAction(this);
     openAction->setShortcut(QKeySequence::Open);
-    connect(openAction, &QAction::triggered, this, [=]() {this->open();});
+    connect(openAction, &QAction::triggered, this, [=]() {
+                                                       if(textEdit->toPlainText().size() > 0) {
+                                                           this->save();
+                                                       }
+                                                       this->open();
+                                                   });
     toolbar->addAction(openAction);
 
     saveAction = new QAction(this);
@@ -127,7 +139,7 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     readSettings();
 
     // SettingsDock
-    settingsDock = new SettingsDock(this, locale, textwidth, limitTextwidth, useAutosave, autosaveInterval,
+    settingsDock = new SettingsDock(this, locale, useSpellChecker, textwidth, limitTextwidth, useAutosave, autosaveInterval,
                                     font, fontsize, wordsPerPage, charactersPerPage, wordsPerMinute, showWordcount,
                                     showPagecount, pagecountFromCharacters, showReadtime, showDifficulty);
     this->addDockWidget(Qt::RightDockWidgetArea, settingsDock);
@@ -138,6 +150,7 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     connect(settingsDock, &SettingsDock::fontChangeRequested, this, &MainWindow::setFont);
     connect(settingsDock, &SettingsDock::fontSizeChangeRequested, this, &MainWindow::setFontSize);
     connect(settingsDock, &SettingsDock::languageChangeRequested, this, &MainWindow::selectLanguage);
+    connect(settingsDock, &SettingsDock::useSpellCheckerRequested, this, &MainWindow::setUseSpellChecker);
     connect(settingsDock, &SettingsDock::showWordcountRequested, this, &MainWindow::setShowWordcount);
     connect(settingsDock, &SettingsDock::showPagecountRequested, this, &MainWindow::setShowPagecount);
     connect(settingsDock, &SettingsDock::showReadtimeRequested, this, &MainWindow::setShowReadtime);
@@ -175,9 +188,6 @@ void MainWindow::retranslate() {
 void MainWindow::closeEvent(QCloseEvent *event) {
     writeSettings();
 
-    if(data.wordcount > 0) {
-        this->save();
-    }
     event->accept();
 }
 
@@ -195,6 +205,9 @@ void MainWindow::readSettings() {
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
     locale = settings.value("locale", locale).toString();
     this->selectLanguage(locale);
+
+    useSpellChecker = settings.value("use_spellchecker", useSpellChecker).toBool();
+    this->setUseSpellChecker(useSpellChecker);
 
     useLightTheme = settings.value("use_light_theme", useLightTheme).toBool();
     if(useLightTheme) {
@@ -237,6 +250,7 @@ void MainWindow::readSettings() {
 void MainWindow::writeSettings() {
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
     settings.setValue("locale", locale);
+    settings.setValue("use_spellchecker", useSpellChecker);
     settings.setValue("use_light_theme", useLightTheme);
     settings.setValue("limit_textwidth", limitTextwidth);
     settings.setValue("font", font);
@@ -314,10 +328,19 @@ void MainWindow::saveToDisk(QString &filename) {
 
 void MainWindow::selectLanguage(QString locale) {
     QApplication::removeTranslator(translator);
-    translator->load(":translations/Editor_" + locale + ".qm");
+    translator->load(":/translations/Editor_" + locale + ".qm");
     QApplication::installTranslator(translator);
 
+    delete spellchecker;
+    spellchecker = new SpellChecker(this->getDictionary(locale), "");
+    textEdit->setSpellChecker(spellchecker);
+
     this->locale = locale;
+}
+
+
+QString MainWindow::getDictionary(QString locale) {
+    return temporaryDictDir.path() + "/" + locale.left(2) + "_index";
 }
 
 
@@ -422,7 +445,7 @@ void MainWindow::statisticsChanged(const TextEditor::TextData data) {
 }
 
 
-MainWindow::~MainWindow()
-{
+MainWindow::~MainWindow() {
+    delete spellchecker;
 }
 

@@ -159,11 +159,15 @@
     </message>
     <message>
         <source>enable auto-save</source>
-        <translation>Aktiviere Auto-Sichern</translation>
+        <translation>aktiviere Auto-Sichern</translation>
     </message>
     <message>
         <source>auto-save interval (min):</source>
         <translation>Auto-Sichern Interval (min):</translation>
+    </message>
+    <message>
+        <source>use spellchecker</source>
+        <translation>nutze Rechtschreibprüfung</translation>
     </message>
 </context>
 <context>

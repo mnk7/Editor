@@ -15,7 +15,7 @@ class SettingsDock : public QDockWidget
 {
     Q_OBJECT
 public:
-    SettingsDock(QWidget *parent, QString local, int textwidth, bool limitTextwidth, bool useAutosave, int autosaveInterval,
+    SettingsDock(QWidget *parent, QString local, bool useSpellChecker, int textwidth, bool limitTextwidth, bool useAutosave, int autosaveInterval,
                  QFont font, int fontsize, int wordsPerPage, int charactersPerPage, int wordsPerMinute, bool showWordcount,
                  bool showPagecount, bool pagecountFromCharacters, bool showReadtime, bool showDifficulty);
 
@@ -25,6 +25,7 @@ signals:
     void lightThemeRequested();
     void darkThemeRequested();
     void languageChangeRequested(QString);
+    void useSpellCheckerRequested(bool);
     void fontChangeRequested(const QFont);
     void fontSizeChangeRequested(int);
     void setEnableFixedTextwidthRequested(bool);
@@ -44,6 +45,8 @@ signals:
 
 private:
     QScrollArea *scrollArea;
+
+    QCheckBox *useSpellCheckerCheck;
 
     QCheckBox *enableTextwidthCheck;
     QLabel *textwidthLabel;

@@ -1,6 +1,6 @@
 #include "texteditor.h"
 
-TextEditor::TextEditor(QWidget * parent)
+TextEditor::TextEditor(QWidget *parent, SpellChecker *spellchecker)
     : QPlainTextEdit(parent)
 {
     textwidth = 80;
@@ -17,7 +17,7 @@ TextEditor::TextEditor(QWidget * parent)
 
     this->setTabStopDistance(this->cursorWidth() * 4);
 
-    highlighter = new MDHighlighter(this->document());
+    highlighter = new MDHighlighter(this->document(), spellchecker);
     highlighter->setDefaultFont(this->font());
 
     analyzeTimer = new QTimer(this);
@@ -78,7 +78,7 @@ int TextEditor::setTextWidth(int textwidth) {
 
         int textwidth_pixels = this->fontMetrics().horizontalAdvance(QString(this->textwidth, 'X'));
         // add the -1 to avoid rounding errors making the line too short
-        margin = (this->width() - textwidth_pixels - 1) / 2;
+        margin = (this->width() - textwidth_pixels) / 2;
 
         if(margin < 0) {
             margin = 0;
@@ -182,7 +182,10 @@ void TextEditor::replaceAllRequested(const QString &text, const QString &replace
 
 void TextEditor::analyzeText() {
     data = countWords(this->toPlainText());
-    emit textAnalyzed(data);
+
+    if(!this->textCursor().hasSelection()) {
+        emit textAnalyzed(data);
+    }
 }
 
 

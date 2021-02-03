@@ -9,13 +9,14 @@
 #include <QTimer>
 
 #include "mdhighlighter.h"
+#include "spellchecker.h"
 
 class TextEditor : public QPlainTextEdit
 {
     Q_OBJECT
 
 public:
-    TextEditor(QWidget *parent);
+    TextEditor(QWidget *parent, SpellChecker *spellchecker);
 
     struct TextData {
         int charactercount = 0;
@@ -25,6 +26,9 @@ public:
     };
 
     TextData getTextData() {return data;}
+
+    void setSpellChecker(SpellChecker *spellchecker) {highlighter->setSpellChecker(spellchecker); highlighter->rehighlight();}
+    void setUseSpellChecker(bool useSpellChecker) {highlighter->setUseSpellChecker(useSpellChecker); highlighter->rehighlight();}
 
     int setTextWidth(int textwidth);
     void limitTextWidth(bool limittextwidth);

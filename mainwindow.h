@@ -13,10 +13,14 @@
 #include <QTextStream>
 #include <QMessageBox>
 #include <QTimer>
+#include <QStandardPaths>
+#include <QTemporaryDir>
 
 #include "texteditor.h"
 #include "finddock.h"
 #include "settingsdock.h"
+
+#include "spellchecker.h"
 
 class MainWindow : public QMainWindow
 {
@@ -33,11 +37,15 @@ protected:
 private:
     QString currentFile;
 
+    QTemporaryDir temporaryDictDir;
+
     QTimer *autosaveTimer;
     int autosaveInterval;
     bool useAutosave;
 
     QString locale;
+
+    bool useSpellChecker;
 
     bool useLightTheme;
 
@@ -65,6 +73,8 @@ private:
 
     QTranslator *translator;
 
+    SpellChecker *spellchecker;
+
     TextEditor *textEdit;
     FindDock *findDock;
     SettingsDock *settingsDock;
@@ -79,6 +89,7 @@ private:
     QLabel *statisticsLabel;
     QAction *optionsAction;
 
+    void setUseSpellChecker(bool useSpellChecker) {this->useSpellChecker = useSpellChecker; this->textEdit->setUseSpellChecker(useSpellChecker);}
     void setLimitTextwidth(bool limitTextwidth) {this->limitTextwidth = limitTextwidth; this->textEdit->limitTextWidth(limitTextwidth);}
     void setTextWidth(int textwidth) {this->textwidth = textwidth; this->textwidth = textEdit->setTextWidth(textwidth);}
     void setFont(QFont font) {this->font = font; this->textEdit->setFont(font);}
@@ -103,6 +114,7 @@ private:
     void saveas();
     void saveToDisk(QString &filename);
     void selectLanguage(QString locale);
+    QString getDictionary(QString locale);
     void setDarkTheme();
     void setLightTheme();
     void setAutosaveInterval(int autosaveInterval);
