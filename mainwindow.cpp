@@ -43,13 +43,13 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     locale = QLocale::system().name();
 
     // SpellChecker
-    useSpellChecker = true;
+    useSpellChecker = false;
 
     if (temporaryDictDir.isValid()) {
-        QFile::copy(":/dictionaries/dictionaries/dictionaries/en/index.aff", temporaryDictDir.path() + "/en_index.aff");
-        QFile::copy(":/dictionaries/dictionaries/dictionaries/en/index.dic", temporaryDictDir.path() + "/en_index.dic");
-        QFile::copy(":/dictionaries/dictionaries/dictionaries/de/index.aff", temporaryDictDir.path() + "/de_index.aff");
-        QFile::copy(":/dictionaries/dictionaries/dictionaries/de/index.dic", temporaryDictDir.path() + "/de_index.dic");
+        QFile::copy(":/dictionaries/dictionaries/en/en_GB.aff", temporaryDictDir.path() + "/en.aff");
+        QFile::copy(":/dictionaries/dictionaries/en/en_GB.dic", temporaryDictDir.path() + "/en.dic");
+        QFile::copy(":/dictionaries/dictionaries/de/de_DE_frami.aff", temporaryDictDir.path() + "/de.aff");
+        QFile::copy(":/dictionaries/dictionaries/de/de_DE_frami.dic", temporaryDictDir.path() + "/de.dic");
     }
 
     // have to request WRITE_EXTERNAL_STORAGE for Android
@@ -340,7 +340,7 @@ void MainWindow::selectLanguage(QString locale) {
 
 
 QString MainWindow::getDictionary(QString locale) {
-    return temporaryDictDir.path() + "/" + locale.left(2) + "_index";
+    return temporaryDictDir.path() + "/" + locale.left(2);
 }
 
 

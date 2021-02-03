@@ -11,9 +11,9 @@
         <file>Icon.png</file>
     </qresource>
     <qresource prefix="/dictionaries">
-        <file>dictionaries/dictionaries/de/index.aff</file>
-        <file>dictionaries/dictionaries/de/index.dic</file>
-        <file>dictionaries/dictionaries/en/index.aff</file>
-        <file>dictionaries/dictionaries/en/index.dic</file>
+        <file>dictionaries/de/de_DE_frami.aff</file>
+        <file>dictionaries/de/de_DE_frami.dic</file>
+        <file>dictionaries/en/en_GB.aff</file>
+        <file>dictionaries/en/en_GB.dic</file>
     </qresource>
 </RCC>
