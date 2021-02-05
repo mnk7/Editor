@@ -7,3 +7,4 @@ A simple text editor with
 - Flesch-level computation in English and German
 - light and dark theme
 - auto-save
+- spell checking with Hunspell
