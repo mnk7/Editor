@@ -15,9 +15,11 @@ class SettingsDock : public QDockWidget
 {
     Q_OBJECT
 public:
-    SettingsDock(QWidget *parent, QString local, bool useSpellChecker, int textwidth, bool limitTextwidth, bool useAutosave, int autosaveInterval,
-                 QFont font, int fontsize, int wordsPerPage, int charactersPerPage, int wordsPerMinute, bool showWordcount,
-                 bool showPagecount, bool pagecountFromCharacters, bool showReadtime, bool showDifficulty);
+    SettingsDock(QWidget *parent, const QString local, const bool useSpellChecker,
+                 const int textwidth, const bool limitTextwidth, const bool useAutosave,
+                 const int autosaveInterval, const QFont font, const int fontsize, const int wordsPerPage,
+                 const int charactersPerPage, const int wordsPerMinute, const bool showWordcount,
+                 const bool showPagecount, const bool pagecountFromCharacters, const bool showReadtime, const bool showDifficulty);
 
     void retranslate();
 
@@ -65,7 +67,7 @@ private:
     QCheckBox *enableAutosaveCheck;
     QLabel *autosaveIntervalLabel;
 
-    void newLanguageSelected(int index);
+    void newLanguageSelected(const int index);
 };
 
 #endif // SETTINGSDOCK_H

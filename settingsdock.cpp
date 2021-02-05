@@ -1,7 +1,10 @@
 #include "settingsdock.h"
 
-SettingsDock::SettingsDock(QWidget *parent, QString locale, bool useSpellChecker, int textwidth, bool limitTextwidth, bool useAutosave, int autosaveInterval, QFont font, int fontsize, int wordsPerPage,
-                           int charactersPerPage, int wordsPerMinute, bool showWordcount, bool showPagecount, bool pagecountFromCharacters, bool showReadtime, bool showDifficulty)
+SettingsDock::SettingsDock(QWidget *parent, QString locale, const bool useSpellChecker, const int textwidth,
+                           const bool limitTextwidth, const bool useAutosave, const int autosaveInterval,
+                           const QFont font, const int fontsize, const int wordsPerPage, const int charactersPerPage,
+                           const int wordsPerMinute, const bool showWordcount, const bool showPagecount,
+                           const bool pagecountFromCharacters, const bool showReadtime, const bool showDifficulty)
     : QDockWidget(parent)
 {
     this->setAllowedAreas(Qt::RightDockWidgetArea);
@@ -276,7 +279,7 @@ void SettingsDock::retranslate() {
 }
 
 
-void SettingsDock::newLanguageSelected(int index) {
+void SettingsDock::newLanguageSelected(const int index) {
     switch(index) {
     case 1:
         emit languageChangeRequested("de_DE");

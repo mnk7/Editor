@@ -4,63 +4,47 @@
 #include <QPlainTextEdit>
 #include <QScrollBar>
 #include <QCommonStyle>
-#include <QGestureEvent>
 #include <QMessageBox>
-#include <QTimer>
 
 #include "mdhighlighter.h"
 #include "spellchecker.h"
+#include "textanalyzer.h"
 
 class TextEditor : public QPlainTextEdit
 {
     Q_OBJECT
 
 public:
-    TextEditor(QWidget *parent, SpellChecker *spellchecker);
-
-    struct TextData {
-        int charactercount = 0;
-        int wordcount = 0;
-        double avg_sentence_length = 1;
-        double avg_word_length = 1;
-    };
-
-    TextData getTextData() {return data;}
+    TextEditor(QWidget *parent, TextAnalyzer *statistics, SpellChecker *spellchecker);
 
     void setSpellChecker(SpellChecker *spellchecker) {highlighter->setSpellChecker(spellchecker); highlighter->rehighlight();}
-    void setUseSpellChecker(bool useSpellChecker) {highlighter->setUseSpellChecker(useSpellChecker); highlighter->rehighlight();}
+    void setUseSpellChecker(const bool useSpellChecker) {highlighter->setUseSpellChecker(useSpellChecker); highlighter->rehighlight();}
 
-    int setTextWidth(int textwidth);
-    void limitTextWidth(bool limittextwidth);
+    int setTextWidth(const int textwidth);
+    void limitTextWidth(const bool limittextwidth);
 
     void resizeEvent(QResizeEvent *event);
     void setFont(const QFont &font);
-    void setFontSize(int fontsize);
+    void setFontSize(const int fontsize);
 
     void findRequested(const QString &text);
     void replaceRequested(const QString &text, const QString &replacement);
     void replaceAllRequested(const QString &text, const QString &replacement);
 
-    void analyzeText();
+    void analyzeWholeText();
+    void analyzeTextChange(const int position, const int charsRemoved, const int charsAdded);
     void analyzeSelection();
 
 signals:
-    void textAnalyzed(const TextData data);
-
-protected:
-    bool event(QEvent *event);
+    void textAnalyzed(bool selection);
 
 private:
     int textwidth;
     bool limittextwidth;
 
-    TextData data;
+    TextAnalyzer *statistics;
 
     MDHighlighter *highlighter;
-
-    QTimer *analyzeTimer;
-
-    TextData countWords(QString text);
 };
 
 #endif // TEXTEDITOR_H

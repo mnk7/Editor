@@ -1,10 +1,11 @@
 #include "texteditor.h"
 
-TextEditor::TextEditor(QWidget *parent, SpellChecker *spellchecker)
+TextEditor::TextEditor(QWidget *parent, TextAnalyzer *statistics, SpellChecker *spellchecker)
     : QPlainTextEdit(parent)
 {
     textwidth = 80;
     limittextwidth = true;
+    this->statistics = statistics;
 
     //this->setAttribute(Qt::WA_AcceptTouchEvents);
     this->grabGesture(Qt::PanGesture);
@@ -20,55 +21,12 @@ TextEditor::TextEditor(QWidget *parent, SpellChecker *spellchecker)
     highlighter = new MDHighlighter(this->document(), spellchecker);
     highlighter->setDefaultFont(this->font());
 
-    analyzeTimer = new QTimer(this);
-    connect(analyzeTimer, &QTimer::timeout, this, &TextEditor::analyzeText);
-    analyzeTimer->setSingleShot(true);
-    analyzeTimer->setInterval(3000);
-
-    connect(this, &TextEditor::textChanged, analyzeTimer, [=]() {analyzeTimer->start();});
+    connect(this->document(), &QTextDocument::contentsChange, this, &TextEditor::analyzeTextChange);
     connect(this, &TextEditor::selectionChanged, this, &TextEditor::analyzeSelection);
 }
 
 
-bool TextEditor::event(QEvent *event) {
-    switch(event->type()) {
-    /**case QEvent::TouchBegin:
-        event->accept();
-    case QEvent::TouchUpdate:
-    case QEvent::TouchEnd: {
-        QTouchEvent *touchEvent = static_cast<QTouchEvent*>(event);
-        int numberTouchPoints = touchEvent->touchPoints().count();
-
-        if(numberTouchPoints == 3) {
-            this->undo();
-        } else if(numberTouchPoints == 4) {
-            this->redo();
-        } else {
-            return QPlainTextEdit::event(event);
-        }
-
-        return true;
-    }**/
-    /**case QEvent::Gesture: {
-        QGestureEvent *gestureEvent = static_cast<QGestureEvent*>(event);
-        if(QGesture *gesture = gestureEvent->gesture(Qt::PanGesture)) {
-            QPanGesture *panGesture = static_cast<QPanGesture*>(gesture);
-            this->scrollContentsBy(0, static_cast<int>(panGesture->delta().y()));
-            this->setPlainText(QString::number(panGesture->delta().y()));
-        }
-
-        qDebug("Gesture!");
-
-        event->accept();
-        return true;
-    }**/
-    default:
-        return QPlainTextEdit::event(event);
-    }
-}
-
-
-int TextEditor::setTextWidth(int textwidth) {
+int TextEditor::setTextWidth(const int textwidth) {
     int margin = 0;
     if(limittextwidth) {
         this->textwidth = textwidth;
@@ -91,7 +49,7 @@ int TextEditor::setTextWidth(int textwidth) {
 }
 
 
-void TextEditor::limitTextWidth(bool limittextwidth) {
+void TextEditor::limitTextWidth(const bool limittextwidth) {
     this->limittextwidth = limittextwidth;
 
     setTextWidth(textwidth);
@@ -120,7 +78,7 @@ void TextEditor::setFont(const QFont &font) {
 }
 
 
-void TextEditor::setFontSize(int fontsize) {
+void TextEditor::setFontSize(const int fontsize) {
     QFont font = this->font();
     font.setPointSize(fontsize);
     this->QWidget::setFont(font);
@@ -180,99 +138,43 @@ void TextEditor::replaceAllRequested(const QString &text, const QString &replace
 }
 
 
-void TextEditor::analyzeText() {
-    data = countWords(this->toPlainText());
+void TextEditor::analyzeWholeText() {
+    analyzeTextChange(0, 0, this->document()->characterCount());
+}
+
+
+void TextEditor::analyzeTextChange(const int position, const int charsRemoved, const int charsAdded) {
+    QTextBlock block = this->document()->findBlock(position);
+
+    int blockNumberDelta = this->document()->blockCount() - statistics->blockCount();
+
+    if(blockNumberDelta < 0) {
+        statistics->removeBlocks(block.blockNumber(), -blockNumberDelta);
+    } else {
+        statistics->addBlocks(block.blockNumber(), blockNumberDelta);
+    }
+
+    int lastChangedBlock = this->document()->findBlock(position + charsAdded).blockNumber();
+    if(lastChangedBlock < 0) {
+        lastChangedBlock = this->document()->blockCount() - 1;
+    }
+
+    for(int i = block.blockNumber(); i <= lastChangedBlock; ++i) {
+        statistics->updateBlock(i, block.text());
+        block = block.next();
+    }
 
     if(!this->textCursor().hasSelection()) {
-        emit textAnalyzed(data);
+        emit textAnalyzed(false);
     }
 }
 
 
 void TextEditor::analyzeSelection() {
     if(this->textCursor().hasSelection()) {
-        QString selection = this->textCursor().selectedText();
-        selection.replace(QChar(0x2029), '\n');
-        emit textAnalyzed(countWords(selection));
+        statistics->analyzeSelection(this->textCursor().selectedText());
+        emit textAnalyzed(true);
     } else {
-        emit textAnalyzed(data);
+        emit textAnalyzed(false);
     }
-}
-
-
-TextEditor::TextData TextEditor::countWords(QString text) {
-    TextData data;
-    int number_of_sentences = 1;
-    int number_of_syllables = 0;
-
-    QRegularExpression wordRegEx("[^\\s]+");
-    QRegularExpressionMatchIterator matchIterator = wordRegEx.globalMatch(text);
-
-    if(matchIterator.isValid()) {
-        while(matchIterator.hasNext()) {
-            QRegularExpressionMatch match = matchIterator.next();
-
-            QString word = match.captured(0);
-
-            int last_vocal_position = -2;
-            int notLetterorNumber = 0;
-
-            for(decltype(word.size()) i = 0; i < word.size(); ++i) {
-                if(!word[i].isLetterOrNumber()) {
-                    ++notLetterorNumber;
-                    continue;
-                }
-
-                QChar letter = word[i].toLower();
-
-                if(letter == "a"
-                    || letter == "ä"
-                    || letter == "e"
-                    || letter == "i"
-                    || letter == "o"
-                    || letter == "ö"
-                    || letter == "u"
-                    || letter == "ü"
-                    || letter == "y") {
-
-                    // don't count double vocals (ai, eu, ou, ...)
-                    // count tripple vocals (Eier, ...) as two syllables
-                    if(last_vocal_position != i - 1) {
-                        ++number_of_syllables;
-                        last_vocal_position = i;
-                    }
-                }
-            }
-
-            // don't add to statistics if there is no word.
-            if(notLetterorNumber == word.size()) {
-                continue;
-            }
-
-            // count words without vocals as one syllable
-            if(last_vocal_position == -2) {
-                ++number_of_syllables;
-            }
-
-            if(word.endsWith(".")) {
-                // we add 1 at the end, so don't count a last sentence that ends with '.'
-                if(matchIterator.hasNext()) {
-                    ++number_of_sentences;
-                }
-            }
-
-            ++data.wordcount;
-        }
-    }
-
-    data.charactercount = text.size();
-    data.avg_sentence_length = data.wordcount * 1.0 / number_of_sentences;
-
-    if(data.wordcount != 0) {
-        data.avg_word_length = number_of_syllables * 1.0 / data.wordcount;
-    } else {
-        data.avg_word_length = number_of_syllables;
-    }
-
-    return data;
 }

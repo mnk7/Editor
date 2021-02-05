@@ -13,8 +13,8 @@ public:
     MDHighlighter(QTextDocument *document, SpellChecker *spellchecker);
 
     void setSpellChecker(SpellChecker *spellchecker) {this->spellchecker = spellchecker;}
-    void setUseSpellChecker(bool useSpellChecker) {this->useSpellChecker = useSpellChecker;}
-    void setDefaultFont(QFont defaultFont){this->defaultFont = defaultFont;}
+    void setUseSpellChecker(const bool useSpellChecker) {this->useSpellChecker = useSpellChecker;}
+    void setDefaultFont(const QFont defaultFont){this->defaultFont = defaultFont;}
 
 protected:
     void highlightBlock(const QString &text);

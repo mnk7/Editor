@@ -57,7 +57,7 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     spellchecker = new SpellChecker(getDictionary(locale), "");
 
     // TextEdit
-    textEdit = new TextEditor(this, spellchecker);
+    textEdit = new TextEditor(this, &statistics, spellchecker);
     this->setCentralWidget(textEdit);
 
     // FindDock
@@ -177,7 +177,7 @@ void MainWindow::retranslate() {
     findAction->setText(tr("Find"));
     undoAction->setText(tr("Undo"));
     redoAction->setText(tr("Redo"));
-    statisticsChanged(data);
+    statisticsChanged(false);
     optionsAction->setText(tr("Options"));
 
     findDock->retranslate();
@@ -243,7 +243,7 @@ void MainWindow::readSettings() {
     pagecountFromCharacters = settings.value("pagecount_from_characters", pagecountFromCharacters).toBool();
     showReadtime = settings.value("show_readtime", showReadtime).toBool();
     showDifficulty = settings.value("show_difficulty", showDifficulty).toBool();
-    this->statisticsChanged(data);
+    this->statisticsChanged(false);
 }
 
 
@@ -269,7 +269,7 @@ void MainWindow::writeSettings() {
 }
 
 
-void MainWindow::open(QString &filename) {
+void MainWindow::open(const QString &filename) {
     QFile file(filename);
 
     if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
@@ -309,7 +309,7 @@ void MainWindow::saveas() {
 }
 
 
-void MainWindow::saveToDisk(QString &filename) {
+void MainWindow::saveToDisk(const QString &filename) {
     QFile file(filename);
 
     if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
@@ -326,7 +326,7 @@ void MainWindow::saveToDisk(QString &filename) {
 }
 
 
-void MainWindow::selectLanguage(QString locale) {
+void MainWindow::selectLanguage(const QString locale) {
     QApplication::removeTranslator(translator);
     translator->load(":/translations/Editor_" + locale + ".qm");
     QApplication::installTranslator(translator);
@@ -373,25 +373,31 @@ void MainWindow::setAutosaveInterval(int autosaveInterval) {
 }
 
 
-void MainWindow::statisticsChanged(const TextEditor::TextData data) {
-    this->data = data;
+void MainWindow::statisticsChanged(const bool selection) {
+    TextStatistics data;
+
+    if(selection) {
+        data = statistics.selectionText();
+    } else {
+        data = statistics.wholeText();
+    }
 
     QString showntext = "";
 
     // wordcount
     if(showWordcount) {
-        if(data.wordcount == 1) {
+        if(data.getWordCount() == 1) {
             showntext += tr("1 word");
         } else {
-            showntext += QString::number(data.wordcount) + tr(" words");
+            showntext += QString::number(data.getWordCount()) + tr(" words");
         }
     }
 
     // pagecount
     if(pagecountFromCharacters) {
-        pagecount = data.charactercount / charactersPerPage;
+        pagecount = data.getCharacterCount() / charactersPerPage;
     } else {
-        pagecount = data.wordcount / wordsPerPage;
+        pagecount = data.getWordCount() / wordsPerPage;
     }
 
     if(showPagecount) {
@@ -407,7 +413,7 @@ void MainWindow::statisticsChanged(const TextEditor::TextData data) {
     }
 
     // readtime
-    readtime = data.wordcount / wordsPerMinute;
+    readtime = data.getWordCount() / wordsPerMinute;
 
     if(showReadtime) {
         if(showntext.size() > 0) {
@@ -419,10 +425,17 @@ void MainWindow::statisticsChanged(const TextEditor::TextData data) {
     }
 
     // difficulty
+    double avg_sentence_length = data.getWordCount() / data.getSentenceCount();
+    double avg_word_length = data.getSyllableCount();
+
+    if(data.getWordCount() > 0) {
+        avg_word_length /= data.getWordCount();
+    }
+
     if(locale.startsWith("de")) {
-        difficulty = static_cast<int>(180 - data.avg_sentence_length - (58.5 * data.avg_word_length));
+        difficulty = static_cast<int>(180.0 - avg_sentence_length - (58.5 * avg_word_length));
     } else {
-        difficulty = static_cast<int>(206.835 - (1.015 * data.avg_sentence_length) - (84.6 * data.avg_word_length));
+        difficulty = static_cast<int>(206.835 - (1.015 * avg_sentence_length) - (84.6 * avg_word_length));
     }
 
     if(difficulty > 100) {

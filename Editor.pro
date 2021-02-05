@@ -2,7 +2,7 @@ QT       += core gui
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
-CONFIG += c++11
+CONFIG += c++17
 
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
@@ -25,7 +25,9 @@ SOURCES += \
     mdhighlighter.cpp \
     settingsdock.cpp \
     spellchecker.cpp \
-    texteditor.cpp
+    textanalyzer.cpp \
+    texteditor.cpp \
+    textstatistics.cpp
 
 HEADERS += \
     finddock.h \
@@ -52,7 +54,9 @@ HEADERS += \
     mdhighlighter.h \
     settingsdock.h \
     spellchecker.h \
-    texteditor.h
+    textanalyzer.h \
+    texteditor.h \
+    textstatistics.h
 
 TRANSLATIONS += \
     Editor_de_DE.ts \
