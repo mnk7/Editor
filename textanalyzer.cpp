@@ -125,7 +125,7 @@ TextStatistics TextAnalyzer::countWords(const QString &text) {
         }
     }
 
-    data.setCharacterCount(text.size() - text.count("\n"));
+    data.setCharacterCount(text.size());
 
     return data;
 }

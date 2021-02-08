@@ -23,6 +23,7 @@ SOURCES += \
     main.cpp \
     mainwindow.cpp \
     mdhighlighter.cpp \
+    settings.cpp \
     settingsdock.cpp \
     spellchecker.cpp \
     textanalyzer.cpp \
@@ -52,6 +53,7 @@ HEADERS += \
     hunspell/src/hunspell/w_char.hxx \
     mainwindow.h \
     mdhighlighter.h \
+    settings.h \
     settingsdock.h \
     spellchecker.h \
     textanalyzer.h \

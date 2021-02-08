@@ -8,16 +8,13 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     this->grabGesture(Qt::PanGesture);
 
     this->currentFile = currentFile;
-
-    textwidth = 80;
-    limitTextwidth = true;
-
-    autosaveInterval = 3;
-    useAutosave = true;
+    pagecount = 0;
+    readtime = 0;
+    difficulty = 100;
 
     autosaveTimer = new QTimer(this);
     connect(autosaveTimer, &QTimer::timeout, this, &MainWindow::save);
-    autosaveTimer->start(autosaveInterval * 60000);
+    autosaveTimer->start(settings.getAutosaveInterval() * 60000);
 
     connect(QApplication::instance(), &QApplication::aboutToQuit, this, [=]() {
                                                                             if(textEdit->toPlainText().size() > 0) {
@@ -25,26 +22,10 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
                                                                             }
                                                                         });
 
-    wordsPerPage = 250;
-    charactersPerPage = 1500;
-    pagecount = 0;
-    wordsPerMinute = 150;
-    readtime = 0;
-    difficulty = 100;
-
-    showWordcount = true;
-    showPagecount = false;
-    pagecountFromCharacters = false;
-    showReadtime = false;
-    showDifficulty = false;
-
     // install translator
     translator = new QTranslator();
-    locale = QLocale::system().name();
 
     // SpellChecker
-    useSpellChecker = false;
-
     if (temporaryDictDir.isValid()) {
         QFile::copy(":/dictionaries/dictionaries/en/en_GB.aff", temporaryDictDir.path() + "/en.aff");
         QFile::copy(":/dictionaries/dictionaries/en/en_GB.dic", temporaryDictDir.path() + "/en.dic");
@@ -54,7 +35,7 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
 
     // have to request WRITE_EXTERNAL_STORAGE for Android
     //QString applicationDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
-    spellchecker = new SpellChecker(getDictionary(locale), "");
+    spellchecker = new SpellChecker(getDictionary(settings.getLocale()), "");
 
     // TextEdit
     textEdit = new TextEditor(this, &statistics, spellchecker);
@@ -129,19 +110,13 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     this->addToolBar(toolbar);
 
     // read settings
-    font = textEdit->font();
-    fontsize = font.pointSize();
-    if(fontsize < 0) {
-        fontsize = this->fontInfo().pointSize();
-    }
+    settings.setFont(textEdit->font());
+    settings.setFontsize(settings.getFont().pointSize());
 
-
-    readSettings();
+    loadSettings();
 
     // SettingsDock
-    settingsDock = new SettingsDock(this, locale, useSpellChecker, textwidth, limitTextwidth, useAutosave, autosaveInterval,
-                                    font, fontsize, wordsPerPage, charactersPerPage, wordsPerMinute, showWordcount,
-                                    showPagecount, pagecountFromCharacters, showReadtime, showDifficulty);
+    settingsDock = new SettingsDock(this, &settings);
     this->addDockWidget(Qt::RightDockWidgetArea, settingsDock);
     connect(settingsDock, &SettingsDock::lightThemeRequested, this, &MainWindow::setLightTheme);
     connect(settingsDock, &SettingsDock::darkThemeRequested, this, &MainWindow::setDarkTheme);
@@ -161,7 +136,7 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     connect(settingsDock, &SettingsDock::wordsPerMinuteChangeRequested, this, &MainWindow::setWordsPerMinute);
     connect(settingsDock, &SettingsDock::setEnableAutosaveRequested, this, &MainWindow::setEnableAutosave);
     connect(settingsDock, &SettingsDock::autosaveIntervalChangeRequested, this, &MainWindow::setAutosaveInterval);
-    connect(settingsDock, &SettingsDock::settingsChangeRequested, this, &MainWindow::writeSettings);
+    connect(settingsDock, &SettingsDock::settingsChangeRequested, &settings, &Settings::writeSettings);
     settingsDock->setVisible(false);
 
     if(currentFile != "") {
@@ -186,7 +161,7 @@ void MainWindow::retranslate() {
 
 
 void MainWindow::closeEvent(QCloseEvent *event) {
-    writeSettings();
+    settings.writeSettings();
 
     event->accept();
 }
@@ -201,71 +176,32 @@ void MainWindow::changeEvent(QEvent *event) {
 }
 
 
-void MainWindow::readSettings() {
-    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
-    locale = settings.value("locale", locale).toString();
-    this->selectLanguage(locale);
+void MainWindow::loadSettings() {
+    settings.readSettings();
 
-    useSpellChecker = settings.value("use_spellchecker", useSpellChecker).toBool();
-    this->setUseSpellChecker(useSpellChecker);
+    this->selectLanguage(settings.getLocale());
 
-    useLightTheme = settings.value("use_light_theme", useLightTheme).toBool();
-    if(useLightTheme) {
+    this->setUseSpellChecker(settings.getUseSpellChecker());
+
+    if(settings.getUseLightTheme()) {
         this->setLightTheme();
     } else {
         this->setDarkTheme();
     }
 
-    textwidth = settings.value("textwidth", textwidth).toInt();
-    this->setTextWidth(textwidth);
+    this->setTextWidth(settings.getTextwidth());
 
-    limitTextwidth = settings.value("limit_textwidth", limitTextwidth).toBool();
-    textEdit->limitTextWidth(limitTextwidth);
+    textEdit->limitTextWidth(settings.getLimitTextwidth());
 
-    QVariant fontvariant = settings.value("font", font);
-    font = fontvariant.value<QFont>();
-    textEdit->setFont(font);
+    textEdit->setFont(settings.getFont());
 
-    fontsize = settings.value("fontsize", fontsize).toInt();
-    textEdit->setFontSize(fontsize);
+    textEdit->setFontSize(settings.getFontsize());
 
-    autosaveInterval = settings.value("autosave_interval", autosaveInterval).toInt();
-    this->setAutosaveInterval(autosaveInterval);
+    this->setAutosaveInterval(settings.getAutosaveInterval());
 
-    useAutosave = settings.value("use_autosave", useAutosave).toBool();
-    this->setEnableAutosave(useAutosave);
+    this->setEnableAutosave(settings.getUseAutosave());
 
-    wordsPerPage = settings.value("words_per_page", wordsPerPage).toInt();
-    charactersPerPage = settings.value("characters_per_page", charactersPerPage).toInt();
-    wordsPerMinute = settings.value("characters_per_minute", wordsPerMinute).toInt();
-    showWordcount = settings.value("show_wordcount", showWordcount).toBool();
-    showPagecount = settings.value("show_pagecount", showPagecount).toBool();
-    pagecountFromCharacters = settings.value("pagecount_from_characters", pagecountFromCharacters).toBool();
-    showReadtime = settings.value("show_readtime", showReadtime).toBool();
-    showDifficulty = settings.value("show_difficulty", showDifficulty).toBool();
     this->statisticsChanged(false);
-}
-
-
-void MainWindow::writeSettings() {
-    QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
-    settings.setValue("locale", locale);
-    settings.setValue("use_spellchecker", useSpellChecker);
-    settings.setValue("use_light_theme", useLightTheme);
-    settings.setValue("limit_textwidth", limitTextwidth);
-    settings.setValue("font", font);
-    settings.setValue("fontsize", fontsize);
-    settings.setValue("textwidth", textwidth);
-    settings.setValue("autosave_interval", autosaveInterval);
-    settings.setValue("use_autosave", useAutosave);
-    settings.setValue("words_per_page", wordsPerPage);
-    settings.setValue("characters_per_page", charactersPerPage);
-    settings.setValue("words_per_minute", wordsPerMinute);
-    settings.setValue("show_wordcount", showWordcount);
-    settings.setValue("show_pagecount", showPagecount);
-    settings.setValue("pagecount_from_characters", pagecountFromCharacters);
-    settings.setValue("show_readtime", showReadtime);
-    settings.setValue("show_difficulty", showDifficulty);
 }
 
 
@@ -327,15 +263,15 @@ void MainWindow::saveToDisk(const QString &filename) {
 
 
 void MainWindow::selectLanguage(const QString locale) {
+    settings.setLocale(locale);
+
     QApplication::removeTranslator(translator);
-    translator->load(":/translations/Editor_" + locale + ".qm");
+    translator->load(":/translations/Editor_" + settings.getLocale() + ".qm");
     QApplication::installTranslator(translator);
 
     delete spellchecker;
-    spellchecker = new SpellChecker(this->getDictionary(locale), "");
+    spellchecker = new SpellChecker(this->getDictionary(settings.getLocale()), "");
     textEdit->setSpellChecker(spellchecker);
-
-    this->locale = locale;
 }
 
 
@@ -349,7 +285,7 @@ void MainWindow::setDarkTheme() {
     style.open(QFile::ReadOnly);
     this->setStyleSheet(style.readAll());
 
-    useLightTheme = false;
+    settings.setUseLightTheme(false);
 }
 
 
@@ -358,18 +294,7 @@ void MainWindow::setLightTheme() {
     style.open(QFile::ReadOnly);
     this->setStyleSheet(style.readAll());
 
-    useLightTheme = true;
-}
-
-
-void MainWindow::setAutosaveInterval(int autosaveInterval) {
-    if(autosaveInterval < 1) {
-        this->autosaveInterval = 1;
-    } else {
-        this->autosaveInterval = autosaveInterval;
-    }
-
-    autosaveTimer->start(autosaveInterval * 60000);
+    settings.setUseAutosave(true);
 }
 
 
@@ -385,7 +310,7 @@ void MainWindow::statisticsChanged(const bool selection) {
     QString showntext = "";
 
     // wordcount
-    if(showWordcount) {
+    if(settings.getShowWordcount()) {
         if(data.getWordCount() == 1) {
             showntext += tr("1 word");
         } else {
@@ -394,13 +319,13 @@ void MainWindow::statisticsChanged(const bool selection) {
     }
 
     // pagecount
-    if(pagecountFromCharacters) {
-        pagecount = data.getCharacterCount() / charactersPerPage;
+    if(settings.getPagecountFromCharacters()) {
+        pagecount = data.getCharacterCount() / settings.getCharactersPerPage();
     } else {
-        pagecount = data.getWordCount() / wordsPerPage;
+        pagecount = data.getWordCount() / settings.getWordsPerPage();
     }
 
-    if(showPagecount) {
+    if(settings.getShowPagecount()) {
         if(showntext.size() > 0) {
             showntext += " - ";
         }
@@ -413,9 +338,9 @@ void MainWindow::statisticsChanged(const bool selection) {
     }
 
     // readtime
-    readtime = data.getWordCount() / wordsPerMinute;
+    readtime = data.getWordCount() / settings.getWordsPerMinute();
 
-    if(showReadtime) {
+    if(settings.getShowReadtime()) {
         if(showntext.size() > 0) {
             showntext += " - ";
         }
@@ -432,7 +357,7 @@ void MainWindow::statisticsChanged(const bool selection) {
         avg_word_length /= data.getWordCount();
     }
 
-    if(locale.startsWith("de")) {
+    if(settings.getLocale().startsWith("de")) {
         difficulty = static_cast<int>(180.0 - avg_sentence_length - (58.5 * avg_word_length));
     } else {
         difficulty = static_cast<int>(206.835 - (1.015 * avg_sentence_length) - (84.6 * avg_word_length));
@@ -446,7 +371,7 @@ void MainWindow::statisticsChanged(const bool selection) {
         difficulty = 0;
     }
 
-    if(showDifficulty) {
+    if(settings.getShowDifficulty()) {
         if(showntext.size() > 0) {
             showntext += " - ";
         }

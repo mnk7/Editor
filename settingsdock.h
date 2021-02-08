@@ -11,15 +11,13 @@
 #include <QComboBox>
 #include <QFontComboBox>
 
+#include "settings.h"
+
 class SettingsDock : public QDockWidget
 {
     Q_OBJECT
 public:
-    SettingsDock(QWidget *parent, const QString local, const bool useSpellChecker,
-                 const int textwidth, const bool limitTextwidth, const bool useAutosave,
-                 const int autosaveInterval, const QFont font, const int fontsize, const int wordsPerPage,
-                 const int charactersPerPage, const int wordsPerMinute, const bool showWordcount,
-                 const bool showPagecount, const bool pagecountFromCharacters, const bool showReadtime, const bool showDifficulty);
+    SettingsDock(QWidget *parent, Settings *settings);
 
     void retranslate();
 
@@ -46,6 +44,8 @@ signals:
     void settingsChangeRequested();
 
 private:
+    Settings *settings;
+
     QScrollArea *scrollArea;
 
     QCheckBox *useSpellCheckerCheck;
