@@ -1,6 +1,10 @@
 #include "settings.h"
 
 Settings::Settings(QObject *parent) : QObject(parent) {
+    supportedLanguages.append("English");
+    supportedLocales.append("en_EN");
+    supportedLanguages.append("Deutsch");
+    supportedLocales.append("de_DE");
     setLocale(QLocale::system().name());
     useSpellChecker = false;
     textwidth = 80;
@@ -40,7 +44,6 @@ void Settings::writeSettings() {
     settings.setValue("show_difficulty", showDifficulty);
 }
 
-
 void Settings::readSettings() {
     QSettings settings(QCoreApplication::organizationName(), QCoreApplication::applicationName());
     locale = settings.value("locale", locale).toString();
@@ -63,6 +66,39 @@ void Settings::readSettings() {
     showDifficulty = settings.value("show_difficulty", showDifficulty).toBool();
 }
 
+int Settings::getLanguageIndex(const QString &locale) {
+    int index = supportedLocales.indexOf(locale);
+
+    if(index < 0) {
+        return 0;
+    }
+
+    return index;
+}
+
+QString Settings::getLocaleFromIndex(const int index) {
+    if(index < 0 || index >= supportedLanguages.size()) {
+        return supportedLocales[0];
+    }
+
+    return getLocaleFromLanguage(supportedLanguages[index]);
+}
+
+QString Settings::getLocaleFromLanguage(const QString &language) {
+    int index = supportedLanguages.indexOf(language);
+
+    if(index < 0) {
+        return supportedLocales[0];
+    }
+
+    return supportedLocales.at(index);
+}
+
+QStringList Settings::getSupportedLanguages() const
+{
+    return supportedLanguages;
+}
+
 QString Settings::getLocale() const
 {
     return locale;
@@ -70,12 +106,10 @@ QString Settings::getLocale() const
 
 void Settings::setLocale(const QString &value)
 {
-    if(value.startsWith("en")
-       || value.startsWith("de")) {
-
+    if(supportedLocales.contains(value)) {
         locale = value;
     } else {
-        locale = "en_EN";
+        locale = supportedLocales[0];
     }
 }
 

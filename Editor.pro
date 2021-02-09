@@ -26,6 +26,7 @@ SOURCES += \
     settings.cpp \
     settingsdock.cpp \
     spellchecker.cpp \
+    statisticslabel.cpp \
     textanalyzer.cpp \
     texteditor.cpp \
     textstatistics.cpp
@@ -56,6 +57,7 @@ HEADERS += \
     settings.h \
     settingsdock.h \
     spellchecker.h \
+    statisticslabel.h \
     textanalyzer.h \
     texteditor.h \
     textstatistics.h

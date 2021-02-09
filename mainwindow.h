@@ -19,6 +19,7 @@
 #include "texteditor.h"
 #include "textanalyzer.h"
 #include "textstatistics.h"
+#include "statisticslabel.h"
 #include "finddock.h"
 #include "settingsdock.h"
 #include "settings.h"
@@ -40,15 +41,11 @@ private:
     QString currentFile;
     QTemporaryDir temporaryDictDir;
 
-    TextAnalyzer statistics;
-    int pagecount;
-    int readtime;
-    int difficulty;
-
     QTimer *autosaveTimer;
     QTranslator *translator;
     SpellChecker *spellchecker;
     TextEditor *textEdit;
+    TextAnalyzer statistics;
     FindDock *findDock;
     SettingsDock *settingsDock;
     Settings settings;
@@ -60,7 +57,7 @@ private:
     QAction *findAction;
     QAction *undoAction;
     QAction *redoAction;
-    QLabel *statisticsLabel;
+    StatisticsLabel *statisticsLabel;
     QAction *optionsAction;
 
     void setUseSpellChecker(const bool useSpellChecker) {settings.setUseSpellChecker(useSpellChecker);
@@ -74,23 +71,23 @@ private:
     void setFontSize(const int fontsize) {settings.setFontsize(fontsize);
                                           this->textEdit->setFontSize(settings.getFontsize());}
     void setShowWordcount(const bool showWordcount) {settings.setShowWordcount(showWordcount);
-                                                     statisticsChanged(false);}
+                                                     statisticsLabel->statisticsChanged(false);}
     void setShowPagecount(const bool showPagecount) {settings.setShowPagecount(showPagecount);
-                                                     statisticsChanged(false);}
+                                                     statisticsLabel->statisticsChanged(false);}
     void setpagecountFromCharacters(const bool pageCountFromCharacters) {settings.setPagecountFromCharacters(pageCountFromCharacters);
-                                                                         statisticsChanged(false);}
+                                                                         statisticsLabel->statisticsChanged(false);}
     void setShowReadtime(const bool showReadtime) {settings.setShowReadtime(showReadtime);
-                                                   statisticsChanged(false);}
+                                                   statisticsLabel->statisticsChanged(false);}
     void setShowDifficulty(const bool showDifficulty) {settings.setShowDifficulty(showDifficulty);
-                                                       statisticsChanged(false);}
+                                                       statisticsLabel->statisticsChanged(false);}
     void setUseCharactersPerPage(const bool pagecountFromCharacters) {settings.setPagecountFromCharacters(pagecountFromCharacters);
-                                                                      statisticsChanged(false);}
+                                                                      statisticsLabel->statisticsChanged(false);}
     void setWordsPerPage(const int wordsPerPage) {settings.setWordsPerPage(wordsPerPage);
-                                                  statisticsChanged(false);}
+                                                  statisticsLabel->statisticsChanged(false);}
     void setCharactersPerPage(const int charactersPerPage) {settings.setCharactersPerPage(charactersPerPage);
-                                                            statisticsChanged(false);}
+                                                            statisticsLabel->statisticsChanged(false);}
     void setWordsPerMinute(const int wordsPerMinute) {settings.setWordsPerMinute(wordsPerMinute);
-                                                      statisticsChanged(false);}
+                                                      statisticsLabel->statisticsChanged(false);}
     void setEnableAutosave(const bool useAutosave) {settings.setUseAutosave(useAutosave);
                                                     useAutosave ? autosaveTimer->start() : autosaveTimer->stop();}
     void setAutosaveInterval(int autosaveInterval) {settings.setAutosaveInterval(autosaveInterval);
@@ -107,6 +104,5 @@ private:
     QString getDictionary(const QString locale);
     void setDarkTheme();
     void setLightTheme();
-    void statisticsChanged(const bool selection);
 };
 #endif // MAINWINDOW_H

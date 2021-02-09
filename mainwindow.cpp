@@ -8,9 +8,6 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     this->grabGesture(Qt::PanGesture);
 
     this->currentFile = currentFile;
-    pagecount = 0;
-    readtime = 0;
-    difficulty = 100;
 
     autosaveTimer = new QTimer(this);
     connect(autosaveTimer, &QTimer::timeout, this, &MainWindow::save);
@@ -94,12 +91,8 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     connect(redoAction, &QAction::triggered, textEdit, &TextEditor::redo);
     toolbar->addAction(redoAction);
 
-    statisticsLabel = new QLabel();
-    statisticsLabel->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Minimum);
-    statisticsLabel->setAlignment(Qt::AlignRight);
-    statisticsLabel->setTextFormat(Qt::TextFormat::MarkdownText);
-    statisticsLabel->setContentsMargins(20, 5, 20, 5);
-    connect(textEdit, &TextEditor::textAnalyzed, this, &MainWindow::statisticsChanged);
+    statisticsLabel = new StatisticsLabel(&settings, &statistics, this);
+    connect(textEdit, &TextEditor::textAnalyzed, statisticsLabel, &StatisticsLabel::statisticsChanged);
     toolbar->addWidget(statisticsLabel);
 
     optionsAction = new QAction(this);
@@ -152,7 +145,7 @@ void MainWindow::retranslate() {
     findAction->setText(tr("Find"));
     undoAction->setText(tr("Undo"));
     redoAction->setText(tr("Redo"));
-    statisticsChanged(false);
+    statisticsLabel->statisticsChanged(false);
     optionsAction->setText(tr("Options"));
 
     findDock->retranslate();
@@ -201,7 +194,7 @@ void MainWindow::loadSettings() {
 
     this->setEnableAutosave(settings.getUseAutosave());
 
-    this->statisticsChanged(false);
+    statisticsLabel->statisticsChanged(false);
 }
 
 
@@ -295,91 +288,6 @@ void MainWindow::setLightTheme() {
     this->setStyleSheet(style.readAll());
 
     settings.setUseAutosave(true);
-}
-
-
-void MainWindow::statisticsChanged(const bool selection) {
-    TextStatistics data;
-
-    if(selection) {
-        data = statistics.selectionText();
-    } else {
-        data = statistics.wholeText();
-    }
-
-    QString showntext = "";
-
-    // wordcount
-    if(settings.getShowWordcount()) {
-        if(data.getWordCount() == 1) {
-            showntext += tr("1 word");
-        } else {
-            showntext += QString::number(data.getWordCount()) + tr(" words");
-        }
-    }
-
-    // pagecount
-    if(settings.getPagecountFromCharacters()) {
-        pagecount = data.getCharacterCount() / settings.getCharactersPerPage();
-    } else {
-        pagecount = data.getWordCount() / settings.getWordsPerPage();
-    }
-
-    if(settings.getShowPagecount()) {
-        if(showntext.size() > 0) {
-            showntext += " - ";
-        }
-
-        if(pagecount == 1) {
-            showntext += tr("1 page");
-        } else {
-            showntext += QString::number(pagecount) + tr(" pages");
-        }
-    }
-
-    // readtime
-    readtime = data.getWordCount() / settings.getWordsPerMinute();
-
-    if(settings.getShowReadtime()) {
-        if(showntext.size() > 0) {
-            showntext += " - ";
-        }
-
-        showntext += QString::number(readtime / 60) + tr("h ")
-                     + QString::number(readtime % 60) + tr("m");
-    }
-
-    // difficulty
-    double avg_sentence_length = data.getWordCount() / data.getSentenceCount();
-    double avg_word_length = data.getSyllableCount();
-
-    if(data.getWordCount() > 0) {
-        avg_word_length /= data.getWordCount();
-    }
-
-    if(settings.getLocale().startsWith("de")) {
-        difficulty = static_cast<int>(180.0 - avg_sentence_length - (58.5 * avg_word_length));
-    } else {
-        difficulty = static_cast<int>(206.835 - (1.015 * avg_sentence_length) - (84.6 * avg_word_length));
-    }
-
-    if(difficulty > 100) {
-        difficulty = 100;
-    }
-
-    if(difficulty < 0) {
-        difficulty = 0;
-    }
-
-    if(settings.getShowDifficulty()) {
-        if(showntext.size() > 0) {
-            showntext += " - ";
-        }
-
-        showntext += tr(" level: ") + QString::number(difficulty);
-    }
-
-    statisticsLabel->setText(showntext);
 }
 
 

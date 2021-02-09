@@ -15,6 +15,12 @@ public:
     void writeSettings();
     void readSettings();
 
+    int getLanguageIndex(const QString &locale);
+    QString getLocaleFromIndex(const int index);
+    QString getLocaleFromLanguage(const QString &language);
+
+    QStringList getSupportedLanguages() const;
+
     QString getLocale() const;
     void setLocale(const QString &value);
 
@@ -67,6 +73,8 @@ public:
     void setShowDifficulty(bool value);
 
 private:
+    QStringList supportedLanguages;
+    QStringList supportedLocales;
     QString locale;
     bool useSpellChecker;
     bool useLightTheme;

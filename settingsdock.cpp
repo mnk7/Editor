@@ -56,15 +56,15 @@ SettingsDock::SettingsDock(QWidget *parent, Settings *settings)
     // select language
     QComboBox *languageSelector = new QComboBox();
     languageSelector->setEditable(false);
-    languageSelector->addItem("English");
-    languageSelector->addItem("Deutsch");
 
-    if(settings->getLocale() == "de_DE") {
-        languageSelector->setCurrentIndex(1);
+    for(const QString &language: settings->getSupportedLanguages()) {
+        languageSelector->addItem(language);
     }
 
+    languageSelector->setCurrentIndex(settings->getLanguageIndex(settings->getLocale()));
+
     connect(languageSelector, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, &SettingsDock::newLanguageSelected);
+            this, [=](const int index) {emit languageChangeRequested(settings->getLocaleFromIndex(index)); emit settingsChangeRequested();});
     gridLayout->addWidget(languageSelector, 1, 0, 1, 4);
 
 
@@ -274,17 +274,4 @@ void SettingsDock::retranslate() {
     wordsPerMinuteLabel->setText(tr("words per minute:"));
     enableAutosaveCheck->setText(tr("enable auto-save"));
     autosaveIntervalLabel->setText(tr("auto-save interval (min):"));
-}
-
-
-void SettingsDock::newLanguageSelected(const int index) {
-    switch(index) {
-    case 1:
-        emit languageChangeRequested("de_DE");
-        emit settingsChangeRequested();
-        break;
-    default:
-        emit languageChangeRequested("en_EN");
-        emit settingsChangeRequested();
-    }
 }

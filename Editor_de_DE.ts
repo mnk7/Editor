@@ -80,7 +80,7 @@
     </message>
     <message>
         <source>h </source>
-        <translation>h </translation>
+        <translation type="vanished">h </translation>
     </message>
     <message>
         <source>m -</source>
@@ -92,27 +92,27 @@
     </message>
     <message>
         <source> level: </source>
-        <translation> Level: </translation>
+        <translation type="vanished"> Level: </translation>
     </message>
     <message>
         <source>1 word</source>
-        <translation>1 Wort</translation>
+        <translation type="vanished">1 Wort</translation>
     </message>
     <message>
         <source> words</source>
-        <translation> Worte</translation>
+        <translation type="vanished"> Worte</translation>
     </message>
     <message>
         <source>1 page</source>
-        <translation>1 Seite</translation>
+        <translation type="vanished">1 Seite</translation>
     </message>
     <message>
         <source> pages</source>
-        <translation> Seiten</translation>
+        <translation type="vanished"> Seiten</translation>
     </message>
     <message>
         <source>m</source>
-        <translation>m</translation>
+        <translation type="vanished">m</translation>
     </message>
 </context>
 <context>
@@ -168,6 +168,37 @@
     <message>
         <source>use spellchecker</source>
         <translation>nutze Rechtschreibprüfung</translation>
+    </message>
+</context>
+<context>
+    <name>StatisticsLabel</name>
+    <message>
+        <source>1 word</source>
+        <translation>1 Wort</translation>
+    </message>
+    <message>
+        <source> words</source>
+        <translation> Worte</translation>
+    </message>
+    <message>
+        <source>1 page</source>
+        <translation>1 Seite</translation>
+    </message>
+    <message>
+        <source> pages</source>
+        <translation> Seiten</translation>
+    </message>
+    <message>
+        <source>h </source>
+        <translation>h </translation>
+    </message>
+    <message>
+        <source>m</source>
+        <translation>m</translation>
+    </message>
+    <message>
+        <source> level: </source>
+        <translation> Level: </translation>
     </message>
 </context>
 <context>

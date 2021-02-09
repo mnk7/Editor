@@ -66,8 +66,6 @@ private:
 
     QCheckBox *enableAutosaveCheck;
     QLabel *autosaveIntervalLabel;
-
-    void newLanguageSelected(const int index);
 };
 
 #endif // SETTINGSDOCK_H
