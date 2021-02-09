@@ -19,6 +19,8 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
                                                                             }
                                                                         });
 
+    settings.addSupportedLanguage("Deutsch", "de_DE");
+
     // install translator
     translator = new QTranslator();
 
@@ -111,24 +113,39 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     // SettingsDock
     settingsDock = new SettingsDock(this, &settings);
     this->addDockWidget(Qt::RightDockWidgetArea, settingsDock);
+    connect(settingsDock, &SettingsDock::languageChangeRequested, this, &MainWindow::selectLanguage);
     connect(settingsDock, &SettingsDock::lightThemeRequested, this, &MainWindow::setLightTheme);
     connect(settingsDock, &SettingsDock::darkThemeRequested, this, &MainWindow::setDarkTheme);
-    connect(settingsDock, &SettingsDock::setEnableFixedTextwidthRequested, this, &MainWindow::setLimitTextwidth);
-    connect(settingsDock, &SettingsDock::textwidthChangeRequested, this, &MainWindow::setTextWidth);
-    connect(settingsDock, &SettingsDock::fontChangeRequested, this, &MainWindow::setFont);
-    connect(settingsDock, &SettingsDock::fontSizeChangeRequested, this, &MainWindow::setFontSize);
-    connect(settingsDock, &SettingsDock::languageChangeRequested, this, &MainWindow::selectLanguage);
-    connect(settingsDock, &SettingsDock::useSpellCheckerRequested, this, &MainWindow::setUseSpellChecker);
-    connect(settingsDock, &SettingsDock::showWordcountRequested, this, &MainWindow::setShowWordcount);
-    connect(settingsDock, &SettingsDock::showPagecountRequested, this, &MainWindow::setShowPagecount);
-    connect(settingsDock, &SettingsDock::showReadtimeRequested, this, &MainWindow::setShowReadtime);
-    connect(settingsDock, &SettingsDock::showDifficultyRequested, this, &MainWindow::setShowDifficulty);
-    connect(settingsDock, &SettingsDock::useCharactersPerPage, this, &MainWindow::setUseCharactersPerPage);
-    connect(settingsDock, &SettingsDock::wordsPerPageChangeRequested, this, &MainWindow::setWordsPerPage);
-    connect(settingsDock, &SettingsDock::charactersPerPageChangeRequested, this, &MainWindow::setCharactersPerPage);
-    connect(settingsDock, &SettingsDock::wordsPerMinuteChangeRequested, this, &MainWindow::setWordsPerMinute);
-    connect(settingsDock, &SettingsDock::setEnableAutosaveRequested, this, &MainWindow::setEnableAutosave);
-    connect(settingsDock, &SettingsDock::autosaveIntervalChangeRequested, this, &MainWindow::setAutosaveInterval);
+    connect(settingsDock, &SettingsDock::setEnableFixedTextwidthRequested,
+            this, [=] (const bool limitTextwidth) {settings.setLimitTextwidth(limitTextwidth); this->textEdit->limitTextWidth(settings.getLimitTextwidth());});
+    connect(settingsDock, &SettingsDock::textwidthChangeRequested,
+            this, [=] (const int textwidth) {settings.setTextwidth(textEdit->setTextWidth(textwidth));});
+    connect(settingsDock, &SettingsDock::fontChangeRequested,
+            this, [=] (const QFont font) {settings.setFont(font); this->textEdit->setFont(settings.getFont());});
+    connect(settingsDock, &SettingsDock::fontSizeChangeRequested,
+            this, [=] (const int fontsize) {settings.setFontsize(fontsize); this->textEdit->setFontSize(settings.getFontsize());});
+    connect(settingsDock, &SettingsDock::useSpellCheckerRequested,
+            this, [=] (const bool useSpellChecker) {settings.setUseSpellChecker(useSpellChecker); this->textEdit->setUseSpellChecker(settings.getUseSpellChecker());});
+    connect(settingsDock, &SettingsDock::showWordcountRequested,
+            this, [=] (const bool showWordcount) {settings.setShowWordcount(showWordcount); statisticsLabel->statisticsChanged(false);});
+    connect(settingsDock, &SettingsDock::showPagecountRequested,
+            this, [=] (const bool showPagecount) {settings.setShowPagecount(showPagecount); statisticsLabel->statisticsChanged(false);});
+    connect(settingsDock, &SettingsDock::showReadtimeRequested,
+            this, [=] (const bool showReadtime) {settings.setShowReadtime(showReadtime); statisticsLabel->statisticsChanged(false);});
+    connect(settingsDock, &SettingsDock::showDifficultyRequested,
+            this, [=] (const bool showDifficulty) {settings.setShowDifficulty(showDifficulty); statisticsLabel->statisticsChanged(false);});
+    connect(settingsDock, &SettingsDock::useCharactersPerPage,
+            this, [=] (const bool pagecountFromCharacters) {settings.setPagecountFromCharacters(pagecountFromCharacters); statisticsLabel->statisticsChanged(false);});
+    connect(settingsDock, &SettingsDock::wordsPerPageChangeRequested,
+            this, [=] (const int wordsPerPage) {settings.setWordsPerPage(wordsPerPage); statisticsLabel->statisticsChanged(false);});
+    connect(settingsDock, &SettingsDock::charactersPerPageChangeRequested,
+            this, [=] (const int charactersPerPage) {settings.setCharactersPerPage(charactersPerPage); statisticsLabel->statisticsChanged(false);});
+    connect(settingsDock, &SettingsDock::wordsPerMinuteChangeRequested,
+            this, [=] (const int wordsPerMinute) {settings.setWordsPerMinute(wordsPerMinute); statisticsLabel->statisticsChanged(false);});
+    connect(settingsDock, &SettingsDock::setEnableAutosaveRequested,
+            this, [=] (const bool useAutosave) {settings.setUseAutosave(useAutosave); useAutosave ? autosaveTimer->start() : autosaveTimer->stop();});
+    connect(settingsDock, &SettingsDock::autosaveIntervalChangeRequested,
+            this, [=] (const int autosaveInterval) {settings.setAutosaveInterval(autosaveInterval); autosaveTimer->start(settings.getAutosaveInterval() * 60000);});
     connect(settingsDock, &SettingsDock::settingsChangeRequested, &settings, &Settings::writeSettings);
     settingsDock->setVisible(false);
 
@@ -174,7 +191,7 @@ void MainWindow::loadSettings() {
 
     this->selectLanguage(settings.getLocale());
 
-    this->setUseSpellChecker(settings.getUseSpellChecker());
+    this->textEdit->setUseSpellChecker(settings.getUseSpellChecker());
 
     if(settings.getUseLightTheme()) {
         this->setLightTheme();
@@ -182,7 +199,7 @@ void MainWindow::loadSettings() {
         this->setDarkTheme();
     }
 
-    this->setTextWidth(settings.getTextwidth());
+    settings.setTextwidth(textEdit->setTextWidth(settings.getTextwidth()));
 
     textEdit->limitTextWidth(settings.getLimitTextwidth());
 
@@ -190,9 +207,11 @@ void MainWindow::loadSettings() {
 
     textEdit->setFontSize(settings.getFontsize());
 
-    this->setAutosaveInterval(settings.getAutosaveInterval());
-
-    this->setEnableAutosave(settings.getUseAutosave());
+    if(settings.getUseAutosave()) {
+        autosaveTimer->start(settings.getAutosaveInterval() * 60000);
+    } else {
+        autosaveTimer->stop();
+    }
 
     statisticsLabel->statisticsChanged(false);
 }

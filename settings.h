@@ -15,6 +15,7 @@ public:
     void writeSettings();
     void readSettings();
 
+    void addSupportedLanguage(QString language, QString locale);
     int getLanguageIndex(const QString &locale);
     QString getLocaleFromIndex(const int index);
     QString getLocaleFromLanguage(const QString &language);

@@ -3,8 +3,6 @@
 Settings::Settings(QObject *parent) : QObject(parent) {
     supportedLanguages.append("English");
     supportedLocales.append("en_EN");
-    supportedLanguages.append("Deutsch");
-    supportedLocales.append("de_DE");
     setLocale(QLocale::system().name());
     useSpellChecker = false;
     textwidth = 80;
@@ -64,6 +62,11 @@ void Settings::readSettings() {
     pagecountFromCharacters = settings.value("pagecount_from_characters", pagecountFromCharacters).toBool();
     showReadtime = settings.value("show_readtime", showReadtime).toBool();
     showDifficulty = settings.value("show_difficulty", showDifficulty).toBool();
+}
+
+void Settings::addSupportedLanguage(QString language, QString locale) {
+    supportedLanguages.append(language);
+    supportedLocales.append(locale);
 }
 
 int Settings::getLanguageIndex(const QString &locale) {

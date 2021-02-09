@@ -60,39 +60,6 @@ private:
     StatisticsLabel *statisticsLabel;
     QAction *optionsAction;
 
-    void setUseSpellChecker(const bool useSpellChecker) {settings.setUseSpellChecker(useSpellChecker);
-                                                         this->textEdit->setUseSpellChecker(settings.getUseSpellChecker());}
-    void setLimitTextwidth(const bool limitTextwidth) {settings.setLimitTextwidth(limitTextwidth);
-                                                       this->textEdit->limitTextWidth(settings.getLimitTextwidth());}
-    void setTextWidth(const int textwidth) {settings.setTextwidth(textwidth);
-                                            settings.setTextwidth(textEdit->setTextWidth(settings.getTextwidth()));}
-    void setFont(const QFont font) {settings.setFont(font);
-                                    this->textEdit->setFont(settings.getFont());}
-    void setFontSize(const int fontsize) {settings.setFontsize(fontsize);
-                                          this->textEdit->setFontSize(settings.getFontsize());}
-    void setShowWordcount(const bool showWordcount) {settings.setShowWordcount(showWordcount);
-                                                     statisticsLabel->statisticsChanged(false);}
-    void setShowPagecount(const bool showPagecount) {settings.setShowPagecount(showPagecount);
-                                                     statisticsLabel->statisticsChanged(false);}
-    void setpagecountFromCharacters(const bool pageCountFromCharacters) {settings.setPagecountFromCharacters(pageCountFromCharacters);
-                                                                         statisticsLabel->statisticsChanged(false);}
-    void setShowReadtime(const bool showReadtime) {settings.setShowReadtime(showReadtime);
-                                                   statisticsLabel->statisticsChanged(false);}
-    void setShowDifficulty(const bool showDifficulty) {settings.setShowDifficulty(showDifficulty);
-                                                       statisticsLabel->statisticsChanged(false);}
-    void setUseCharactersPerPage(const bool pagecountFromCharacters) {settings.setPagecountFromCharacters(pagecountFromCharacters);
-                                                                      statisticsLabel->statisticsChanged(false);}
-    void setWordsPerPage(const int wordsPerPage) {settings.setWordsPerPage(wordsPerPage);
-                                                  statisticsLabel->statisticsChanged(false);}
-    void setCharactersPerPage(const int charactersPerPage) {settings.setCharactersPerPage(charactersPerPage);
-                                                            statisticsLabel->statisticsChanged(false);}
-    void setWordsPerMinute(const int wordsPerMinute) {settings.setWordsPerMinute(wordsPerMinute);
-                                                      statisticsLabel->statisticsChanged(false);}
-    void setEnableAutosave(const bool useAutosave) {settings.setUseAutosave(useAutosave);
-                                                    useAutosave ? autosaveTimer->start() : autosaveTimer->stop();}
-    void setAutosaveInterval(int autosaveInterval) {settings.setAutosaveInterval(autosaveInterval);
-                                                    autosaveTimer->start(settings.getAutosaveInterval() * 60000);}
-
     void retranslate();
     void loadSettings();
     void open(const QString &filename);
