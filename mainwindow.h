@@ -8,7 +8,6 @@
 #include <QMainWindow>
 #include <QScreen>
 #include <QToolBar>
-#include <QLabel>
 #include <QFileDialog>
 #include <QTextStream>
 #include <QMessageBox>
@@ -46,6 +45,7 @@ private:
     SpellChecker *spellchecker;
     TextEditor *textEdit;
     TextAnalyzer statistics;
+    QTextEdit *textRender;
     FindDock *findDock;
     SettingsDock *settingsDock;
     Settings settings;

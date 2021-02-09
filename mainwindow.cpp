@@ -40,6 +40,12 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     textEdit = new TextEditor(this, &statistics, spellchecker);
     this->setCentralWidget(textEdit);
 
+    /**textRender = new QTextEdit();
+    textRender->setReadOnly(true);
+    textRender->setMarkdown("# Das ist ein Text \n> *Text*\n\nText\n\nMehr Text");
+    textRender->setAlignment(Qt::AlignTop);
+    this->setCentralWidget(textRender);**/
+
     // FindDock
     findDock = new FindDock(this);
     connect(findDock, &FindDock::findRequested, textEdit, &TextEditor::findRequested);
@@ -80,7 +86,7 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     findAction = new QAction(this);
     findAction->setShortcut(QKeySequence::Find);
     connect(findAction, &QAction::triggered,
-            this, [=]() {findDock->setVisible(!findDock->isVisible());});
+            this, [=]() {findDock->changeVisibility(!findDock->isVisible());});
     toolbar->addAction(findAction);
 
     undoAction = new QAction(this);
@@ -99,7 +105,7 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
 
     optionsAction = new QAction(this);
     connect(optionsAction, &QAction::triggered,
-            this, [=]() {settingsDock->setVisible(!settingsDock->isVisible());});
+            this, [=]() {settingsDock->changeVisibility(!settingsDock->isVisible());});
     toolbar->addAction(optionsAction);
 
     this->addToolBar(toolbar);
@@ -113,6 +119,7 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     // SettingsDock
     settingsDock = new SettingsDock(this, &settings);
     this->addDockWidget(Qt::RightDockWidgetArea, settingsDock);
+    connect(settingsDock, &SettingsDock::visibilityChanged, this, [=](bool visible) {if(!visible) {textEdit->grabKeyboard();}});
     connect(settingsDock, &SettingsDock::languageChangeRequested, this, &MainWindow::selectLanguage);
     connect(settingsDock, &SettingsDock::lightThemeRequested, this, &MainWindow::setLightTheme);
     connect(settingsDock, &SettingsDock::darkThemeRequested, this, &MainWindow::setDarkTheme);
@@ -236,7 +243,7 @@ void MainWindow::open(const QString &filename) {
 
 
 void MainWindow::open() {
-    currentFile = QFileDialog::getOpenFileName(this, tr("Open"));
+    currentFile = QFileDialog::getOpenFileName(this, tr("Open"), "", "Markdown files (*.md *.mkd *.MD *.MKD)");
 
     open(currentFile);
 }

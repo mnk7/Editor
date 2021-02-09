@@ -12,6 +12,13 @@ SettingsDock::SettingsDock(QWidget *parent, Settings *settings)
 
     this->setTitleBarWidget(new QWidget());
 
+    appearanceAnimation = new QPropertyAnimation(this, "geometry");
+    appearanceAnimation->setDuration(150);
+
+    disappearanceAnimation = new QPropertyAnimation(this, "geometry");
+    disappearanceAnimation->setDuration(150);
+    connect(disappearanceAnimation, &QPropertyAnimation::finished, this, [=]() {this->setVisible(false);});
+
     scrollArea = new QScrollArea(this);
     scrollArea->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     scrollArea->setVerticalScrollBarPolicy(Qt::ScrollBarAsNeeded);
@@ -274,4 +281,18 @@ void SettingsDock::retranslate() {
     wordsPerMinuteLabel->setText(tr("words per minute:"));
     enableAutosaveCheck->setText(tr("enable auto-save"));
     autosaveIntervalLabel->setText(tr("auto-save interval (min):"));
+}
+
+
+void SettingsDock::changeVisibility(bool visible) {
+    if(visible) {
+        this->setVisible(true);
+        appearanceAnimation->setStartValue(QRect(parentWidget()->width(), this->y(), this->width(), this->height()));
+        appearanceAnimation->setEndValue(QRect(parentWidget()->width() - this->width(), this->y(), this->width(), this->height()));
+        appearanceAnimation->start();
+    } else {
+        disappearanceAnimation->setStartValue(this->geometry());
+        disappearanceAnimation->setEndValue(QRect(parentWidget()->width(), this->y(), this->width(), this->height()));
+        disappearanceAnimation->start();
+    }
 }

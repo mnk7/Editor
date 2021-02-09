@@ -5,6 +5,7 @@
 #include <QHBoxLayout>
 #include <QPushButton>
 #include <QLineEdit>
+#include <QPropertyAnimation>
 
 class FindDock : public QDockWidget
 {
@@ -13,6 +14,7 @@ public:
     FindDock(QWidget *parent);
 
     void retranslate();
+    void changeVisibility(bool visible);
 
 signals:
     void findRequested(const QString text);
@@ -25,6 +27,9 @@ private:
     QPushButton *replaceButton;
     QLineEdit *replaceEdit;
     QPushButton *replaceAll;
+
+    QPropertyAnimation *appearanceAnimation;
+    QPropertyAnimation *disappearanceAnimation;
 
     void requestFind();
     void requestReplace();

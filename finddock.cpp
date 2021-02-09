@@ -9,6 +9,15 @@ FindDock::FindDock(QWidget *parent)
     this->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
 
+    appearanceAnimation = new QPropertyAnimation(this, "geometry");
+    appearanceAnimation->setDuration(150);
+
+    disappearanceAnimation = new QPropertyAnimation(this, "geometry");
+    disappearanceAnimation->setDuration(150);
+    connect(disappearanceAnimation, &QPropertyAnimation::finished, this, [=]() {this->setVisible(false);});
+
+
+
     this->setTitleBarWidget(new QWidget());
     this->titleBarWidget()->setLayout(new QHBoxLayout());
     this->titleBarWidget()->layout()->setContentsMargins(20, 5, 20, 5);
@@ -66,6 +75,20 @@ void FindDock::retranslate() {
     findButton->setText(tr("find:"));
     replaceButton->setText(tr("replace with:"));
     replaceAll->setText(tr("replace all"));
+}
+
+
+void FindDock::changeVisibility(bool visible) {
+    if(visible) {
+        this->setVisible(true);
+        appearanceAnimation->setStartValue(QRect(this->x(), -this->height(), this->width(), this->height()));
+        appearanceAnimation->setEndValue(QRect(this->x(), this->y(), this->width(), this->height()));
+        appearanceAnimation->start();
+    } else {
+        disappearanceAnimation->setStartValue(this->geometry());
+        disappearanceAnimation->setEndValue(QRect(this->x(), -this->height(), this->width(), this->height()));
+        disappearanceAnimation->start();
+    }
 }
 
 

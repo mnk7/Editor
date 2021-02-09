@@ -10,6 +10,7 @@
 #include <QLineEdit>
 #include <QComboBox>
 #include <QFontComboBox>
+#include <QPropertyAnimation>
 
 #include "settings.h"
 
@@ -20,6 +21,7 @@ public:
     SettingsDock(QWidget *parent, Settings *settings);
 
     void retranslate();
+    void changeVisibility(bool visible);
 
 signals:
     void lightThemeRequested();
@@ -45,6 +47,9 @@ signals:
 
 private:
     Settings *settings;
+
+    QPropertyAnimation *appearanceAnimation;
+    QPropertyAnimation *disappearanceAnimation;
 
     QScrollArea *scrollArea;
 
