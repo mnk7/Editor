@@ -28,6 +28,7 @@ signals:
     void darkThemeRequested();
     void languageChangeRequested(QString);
     void useSpellCheckerRequested(bool);
+    void renderTextRequested(bool);
     void fontChangeRequested(const QFont);
     void fontSizeChangeRequested(int);
     void setEnableFixedTextwidthRequested(bool);
@@ -54,6 +55,8 @@ private:
     QScrollArea *scrollArea;
 
     QCheckBox *useSpellCheckerCheck;
+
+    QCheckBox *renderTextCheck;
 
     QCheckBox *enableTextwidthCheck;
     QLabel *textwidthLabel;

@@ -3,7 +3,7 @@ QWidget {
     color: #FFFFFF;
 }
 
-QPlainTextEdit {
+QPlainTextEdit, QTextEdit {
     border-style: none;
     selection-color: #000000;
     selection-background-color: #CCB026;

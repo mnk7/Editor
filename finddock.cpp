@@ -1,5 +1,7 @@
 #include "finddock.h"
 
+#include <iostream>
+
 FindDock::FindDock(QWidget *parent)
     : QDockWidget(parent)
 {
@@ -8,15 +10,12 @@ FindDock::FindDock(QWidget *parent)
     this->setFloating(false);
     this->setFeatures(QDockWidget::NoDockWidgetFeatures);
 
-
     appearanceAnimation = new QPropertyAnimation(this, "geometry");
-    appearanceAnimation->setDuration(150);
+    appearanceAnimation->setDuration(100);
 
     disappearanceAnimation = new QPropertyAnimation(this, "geometry");
-    disappearanceAnimation->setDuration(150);
+    disappearanceAnimation->setDuration(100);
     connect(disappearanceAnimation, &QPropertyAnimation::finished, this, [=]() {this->setVisible(false);});
-
-
 
     this->setTitleBarWidget(new QWidget());
     this->titleBarWidget()->setLayout(new QHBoxLayout());
@@ -81,12 +80,12 @@ void FindDock::retranslate() {
 void FindDock::changeVisibility(bool visible) {
     if(visible) {
         this->setVisible(true);
-        appearanceAnimation->setStartValue(QRect(this->x(), -this->height(), this->width(), this->height()));
+        appearanceAnimation->setStartValue(QRect(this->x(), this->y() - this->height(), this->width(), this->height()));
         appearanceAnimation->setEndValue(QRect(this->x(), this->y(), this->width(), this->height()));
         appearanceAnimation->start();
     } else {
         disappearanceAnimation->setStartValue(this->geometry());
-        disappearanceAnimation->setEndValue(QRect(this->x(), -this->height(), this->width(), this->height()));
+        disappearanceAnimation->setEndValue(QRect(this->x(), this->y() - this->height(), this->width(), this->height()));
         disappearanceAnimation->start();
     }
 }

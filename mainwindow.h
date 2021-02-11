@@ -8,6 +8,7 @@
 #include <QMainWindow>
 #include <QScreen>
 #include <QToolBar>
+#include <QStackedWidget>
 #include <QFileDialog>
 #include <QTextStream>
 #include <QMessageBox>
@@ -16,6 +17,7 @@
 #include <QTemporaryDir>
 
 #include "texteditor.h"
+#include "textrenderer.h"
 #include "textanalyzer.h"
 #include "textstatistics.h"
 #include "statisticslabel.h"
@@ -43,9 +45,10 @@ private:
     QTimer *autosaveTimer;
     QTranslator *translator;
     SpellChecker *spellchecker;
+    QStackedWidget *stackedCentralWidget;
     TextEditor *textEdit;
     TextAnalyzer statistics;
-    QTextEdit *textRender;
+    TextRenderer *textRender;
     FindDock *findDock;
     SettingsDock *settingsDock;
     Settings settings;

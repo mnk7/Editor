@@ -29,6 +29,7 @@ SOURCES += \
     statisticslabel.cpp \
     textanalyzer.cpp \
     texteditor.cpp \
+    textrenderer.cpp \
     textstatistics.cpp
 
 HEADERS += \
@@ -60,6 +61,7 @@ HEADERS += \
     statisticslabel.h \
     textanalyzer.h \
     texteditor.h \
+    textrenderer.h \
     textstatistics.h
 
 TRANSLATIONS += \

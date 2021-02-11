@@ -5,7 +5,7 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
 {
     this->setMinimumSize(500, 400);
     this->setUnifiedTitleAndToolBarOnMac(true);
-    this->grabGesture(Qt::PanGesture);
+    //this->grabGesture(Qt::PanGesture);
 
     this->currentFile = currentFile;
 
@@ -36,15 +36,14 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     //QString applicationDataPath = QStandardPaths::writableLocation(QStandardPaths::AppDataLocation);
     spellchecker = new SpellChecker(getDictionary(settings.getLocale()), "");
 
-    // TextEdit
-    textEdit = new TextEditor(this, &statistics, spellchecker);
-    this->setCentralWidget(textEdit);
-
-    /**textRender = new QTextEdit();
-    textRender->setReadOnly(true);
-    textRender->setMarkdown("# Das ist ein Text \n> *Text*\n\nText\n\nMehr Text");
-    textRender->setAlignment(Qt::AlignTop);
-    this->setCentralWidget(textRender);**/
+    // the central widget that displays either the textEdit or the textRender
+    stackedCentralWidget = new QStackedWidget(this);
+    textEdit = new TextEditor(stackedCentralWidget, &statistics, spellchecker);
+    stackedCentralWidget->addWidget(textEdit);
+    textRender = new TextRenderer(stackedCentralWidget);
+    stackedCentralWidget->addWidget(textRender);
+    stackedCentralWidget->setCurrentWidget(textEdit);
+    this->setCentralWidget(stackedCentralWidget);
 
     // FindDock
     findDock = new FindDock(this);
@@ -123,16 +122,39 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     connect(settingsDock, &SettingsDock::languageChangeRequested, this, &MainWindow::selectLanguage);
     connect(settingsDock, &SettingsDock::lightThemeRequested, this, &MainWindow::setLightTheme);
     connect(settingsDock, &SettingsDock::darkThemeRequested, this, &MainWindow::setDarkTheme);
+    connect(settingsDock, &SettingsDock::renderTextRequested,
+            this, [=] (const bool render) {
+                       if(render) {
+                           textRender->setMarkdown(textEdit->toPlainText());
+                           stackedCentralWidget->setCurrentWidget(textRender);
+                       } else {
+                           stackedCentralWidget->setCurrentWidget(textEdit);
+                   }});
     connect(settingsDock, &SettingsDock::setEnableFixedTextwidthRequested,
-            this, [=] (const bool limitTextwidth) {settings.setLimitTextwidth(limitTextwidth); this->textEdit->limitTextWidth(settings.getLimitTextwidth());});
+            this, [=] (const bool limitTextwidth) {
+                       settings.setLimitTextwidth(limitTextwidth);
+                       textEdit->limitTextWidth(settings.getLimitTextwidth());
+                       textRender->limitTextWidth(settings.getLimitTextwidth());
+                   });
     connect(settingsDock, &SettingsDock::textwidthChangeRequested,
-            this, [=] (const int textwidth) {settings.setTextwidth(textEdit->setTextWidth(textwidth));});
+            this, [=] (const int textwidth) {
+                       settings.setTextwidth(textEdit->setTextWidth(textwidth));
+                       textRender->setTextWidth(settings.getTextwidth());
+                   });
     connect(settingsDock, &SettingsDock::fontChangeRequested,
-            this, [=] (const QFont font) {settings.setFont(font); this->textEdit->setFont(settings.getFont());});
+            this, [=] (const QFont font) {
+                       settings.setFont(font);
+                       textEdit->setFont(settings.getFont());
+                       textRender->setFont(settings.getFont());
+                   });
     connect(settingsDock, &SettingsDock::fontSizeChangeRequested,
-            this, [=] (const int fontsize) {settings.setFontsize(fontsize); this->textEdit->setFontSize(settings.getFontsize());});
+            this, [=] (const int fontsize) {
+                       settings.setFontsize(fontsize);
+                       textEdit->setFontSize(settings.getFontsize());
+                       textRender->setFontSize(settings.getFontsize());
+                   });
     connect(settingsDock, &SettingsDock::useSpellCheckerRequested,
-            this, [=] (const bool useSpellChecker) {settings.setUseSpellChecker(useSpellChecker); this->textEdit->setUseSpellChecker(settings.getUseSpellChecker());});
+            this, [=] (const bool useSpellChecker) {settings.setUseSpellChecker(useSpellChecker); textEdit->setUseSpellChecker(settings.getUseSpellChecker());});
     connect(settingsDock, &SettingsDock::showWordcountRequested,
             this, [=] (const bool showWordcount) {settings.setShowWordcount(showWordcount); statisticsLabel->statisticsChanged(false);});
     connect(settingsDock, &SettingsDock::showPagecountRequested,
@@ -207,12 +229,16 @@ void MainWindow::loadSettings() {
     }
 
     settings.setTextwidth(textEdit->setTextWidth(settings.getTextwidth()));
+    textRender->setTextWidth(settings.getTextwidth());
 
     textEdit->limitTextWidth(settings.getLimitTextwidth());
+    textRender->limitTextWidth(settings.getLimitTextwidth());
 
     textEdit->setFont(settings.getFont());
+    textRender->setFont(settings.getFont());
 
     textEdit->setFontSize(settings.getFontsize());
+    textRender->setFontSize(settings.getFontsize());
 
     if(settings.getUseAutosave()) {
         autosaveTimer->start(settings.getAutosaveInterval() * 60000);

@@ -169,6 +169,10 @@
         <source>use spellchecker</source>
         <translation>nutze Rechtschreibprüfung</translation>
     </message>
+    <message>
+        <source>preview Markdown</source>
+        <translation>Markdown Vorschau</translation>
+    </message>
 </context>
 <context>
     <name>StatisticsLabel</name>

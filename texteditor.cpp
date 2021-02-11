@@ -8,7 +8,7 @@ TextEditor::TextEditor(QWidget *parent, TextAnalyzer *statistics, SpellChecker *
     this->statistics = statistics;
 
     //this->setAttribute(Qt::WA_AcceptTouchEvents);
-    this->grabGesture(Qt::PanGesture);
+    //this->grabGesture(Qt::PanGesture);
     this->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Expanding);
     this->verticalScrollBar()->setStyle(new QCommonStyle());
     this->horizontalScrollBar()->setStyle(new QCommonStyle());
