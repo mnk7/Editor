@@ -79,6 +79,14 @@ DISTFILES += \
     Editor_de_DE.qm \
     Editor_en_EN.qm \
     Icon.png \
+    android/AndroidManifest.xml \
+    android/build.gradle \
+    android/gradle.properties \
+    android/gradle/wrapper/gradle-wrapper.jar \
+    android/gradle/wrapper/gradle-wrapper.properties \
+    android/gradlew \
+    android/gradlew.bat \
+    android/res/values/libs.xml \
     dark_style.qss \
     dictionaries/de/de_DE_frami.aff \
     dictionaries/de/de_DE_frami.dic \
@@ -91,3 +99,5 @@ RESOURCES += \
     Editor.qrc
 
 ICON = Icon.png
+
+ANDROID_PACKAGE_SOURCE_DIR = $$PWD/android

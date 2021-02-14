@@ -261,6 +261,7 @@ void MainWindow::open(const QString &filename) {
     this->setWindowTitle(QFileInfo(currentFile).fileName());
     QTextStream in(&file);
     textEdit->setPlainText(in.readAll());
+    stackedCentralWidget->setCurrentWidget(textEdit);
 
     file.close();
 
