@@ -71,7 +71,12 @@ SettingsDock::SettingsDock(QWidget *parent, Settings *settings)
     languageSelector->setCurrentIndex(settings->getLanguageIndex(settings->getLocale()));
 
     connect(languageSelector, QOverload<int>::of(&QComboBox::currentIndexChanged),
-            this, [=](const int index) {emit languageChangeRequested(settings->getLocaleFromIndex(index)); emit settingsChangeRequested();});
+            this, [=](const int index) {
+                      languageSelector->clearFocus();
+                      languageSelector->releaseKeyboard();
+                      emit languageChangeRequested(settings->getLocaleFromIndex(index));
+                      emit settingsChangeRequested();
+                  });
     gridLayout->addWidget(languageSelector, 1, 0, 1, 4);
 
 

@@ -16,6 +16,12 @@ TextRenderer::TextRenderer(QWidget *parent)
     this->setCursorWidth(this->fontMetrics().horizontalAdvance("X"));
 
     this->setTabStopDistance(this->cursorWidth() * 4);
+
+    this->setWordWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+
+    QTextOption option = this->document()->defaultTextOption();
+    option.setAlignment(Qt::AlignJustify);
+    this->document()->setDefaultTextOption(option);
 }
 
 

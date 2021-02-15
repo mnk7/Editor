@@ -18,6 +18,12 @@ TextEditor::TextEditor(QWidget *parent, TextAnalyzer *statistics, SpellChecker *
 
     this->setTabStopDistance(this->cursorWidth() * 4);
 
+    this->setWordWrapMode(QTextOption::WrapAtWordBoundaryOrAnywhere);
+
+    QTextOption option = this->document()->defaultTextOption();
+    option.setAlignment(Qt::AlignJustify);
+    this->document()->setDefaultTextOption(option);
+
     highlighter = new MDHighlighter(this->document(), spellchecker);
     highlighter->setDefaultFont(this->font());
 

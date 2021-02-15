@@ -13,11 +13,12 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     connect(autosaveTimer, &QTimer::timeout, this, &MainWindow::save);
     autosaveTimer->start(settings.getAutosaveInterval() * 60000);
 
-    connect(QApplication::instance(), &QApplication::aboutToQuit, this, [=]() {
-                                                                            if(textEdit->toPlainText().size() > 0) {
-                                                                                this->save();
-                                                                            }
-                                                                        });
+    connect(QApplication::instance(), &QApplication::aboutToQuit,
+            this, [=]() {
+                      if(textEdit->toPlainText().size() > 0) {
+                          this->save();
+                      }
+                  });
 
     settings.addSupportedLanguage("Deutsch", "de_DE");
 
@@ -50,7 +51,7 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     connect(findDock, &FindDock::findRequested, textEdit, &TextEditor::findRequested);
     connect(findDock, &FindDock::replaceRequested, textEdit, &TextEditor::replaceRequested);
     connect(findDock, &FindDock::replaceAllRequested, textEdit, &TextEditor::replaceAllRequested);
-    this->addDockWidget(Qt::TopDockWidgetArea, findDock);
+            this->addDockWidget(Qt::TopDockWidgetArea, findDock);
     findDock->setVisible(false);
 
     // ToolBar
@@ -64,12 +65,13 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
 
     openAction = new QAction(this);
     openAction->setShortcut(QKeySequence::Open);
-    connect(openAction, &QAction::triggered, this, [=]() {
-                                                       if(textEdit->toPlainText().size() > 0) {
-                                                           this->save();
-                                                       }
-                                                       this->open();
-                                                   });
+    connect(openAction, &QAction::triggered,
+            this, [=]() {
+                      if(textEdit->toPlainText().size() > 0) {
+                          this->save();
+                      }
+                      this->open();
+                  });
     toolbar->addAction(openAction);
 
     saveAction = new QAction(this);
@@ -85,7 +87,9 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     findAction = new QAction(this);
     findAction->setShortcut(QKeySequence::Find);
     connect(findAction, &QAction::triggered,
-            this, [=]() {findDock->changeVisibility(!findDock->isVisible());});
+            this, [=]() {
+                      findDock->changeVisibility(!findDock->isVisible());
+                  });
     toolbar->addAction(findAction);
 
     undoAction = new QAction(this);
@@ -104,7 +108,9 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
 
     optionsAction = new QAction(this);
     connect(optionsAction, &QAction::triggered,
-            this, [=]() {settingsDock->changeVisibility(!settingsDock->isVisible());});
+            this, [=]() {
+                      settingsDock->changeVisibility(!settingsDock->isVisible());
+                  });
     toolbar->addAction(optionsAction);
 
     this->addToolBar(toolbar);
@@ -118,7 +124,6 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     // SettingsDock
     settingsDock = new SettingsDock(this, &settings);
     this->addDockWidget(Qt::RightDockWidgetArea, settingsDock);
-    connect(settingsDock, &SettingsDock::visibilityChanged, this, [=](bool visible) {if(!visible) {textEdit->grabKeyboard();}});
     connect(settingsDock, &SettingsDock::languageChangeRequested, this, &MainWindow::selectLanguage);
     connect(settingsDock, &SettingsDock::lightThemeRequested, this, &MainWindow::setLightTheme);
     connect(settingsDock, &SettingsDock::darkThemeRequested, this, &MainWindow::setDarkTheme);
@@ -126,6 +131,8 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
             this, [=] (const bool render) {
                        if(render) {
                            textRender->setMarkdown(textEdit->toPlainText());
+                           textRender->setGeometry(textEdit->geometry());
+                           textRender->setTextWidth(settings.getTextwidth());
                            stackedCentralWidget->setCurrentWidget(textRender);
                        } else {
                            stackedCentralWidget->setCurrentWidget(textEdit);
@@ -261,7 +268,7 @@ void MainWindow::open(const QString &filename) {
     this->setWindowTitle(QFileInfo(currentFile).fileName());
     QTextStream in(&file);
     textEdit->setPlainText(in.readAll());
-    stackedCentralWidget->setCurrentWidget(textEdit);
+    textRender->setMarkdown(textEdit->toPlainText());
 
     file.close();
 

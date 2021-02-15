@@ -60,11 +60,12 @@ FindDock::FindDock(QWidget *parent)
     connect(replaceAll, &QPushButton::pressed, this, &FindDock::requestReplaceAll);
     this->widget()->layout()->addWidget(replaceAll);
 
-    connect(this, &FindDock::visibilityChanged, this, [=](bool visibility) {
-                                                            if(visibility) {
-                                                                findEdit->setFocus();
-                                                            }
-                                                       });
+    connect(this, &FindDock::visibilityChanged,
+            this, [=](bool visibility) {
+                       if(visibility) {
+                           findEdit->setFocus();
+                       }
+                  });
 
     retranslate();
 }
