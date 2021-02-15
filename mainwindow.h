@@ -40,6 +40,7 @@ protected:
 
 private:
     QString currentFile;
+    QString currentFileName;
     QTemporaryDir temporaryDictDir;
 
     QTimer *autosaveTimer;

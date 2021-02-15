@@ -46,6 +46,11 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     stackedCentralWidget->setCurrentWidget(textEdit);
     this->setCentralWidget(stackedCentralWidget);
 
+    connect(textEdit, &TextEditor::textAnalyzed,
+            this, [=]() {
+                      this->setWindowTitle("*" + this->currentFileName);
+                  });
+
     // FindDock
     findDock = new FindDock(this);
     connect(findDock, &FindDock::findRequested, textEdit, &TextEditor::findRequested);
@@ -265,7 +270,8 @@ void MainWindow::open(const QString &filename) {
         return;
     }
 
-    this->setWindowTitle(QFileInfo(currentFile).fileName());
+    this->currentFileName = QFileInfo(currentFile).fileName();
+    this->setWindowTitle(currentFileName);
     QTextStream in(&file);
     textEdit->setPlainText(in.readAll());
     textRender->setMarkdown(textEdit->toPlainText());
@@ -284,17 +290,17 @@ void MainWindow::open() {
 
 
 void MainWindow::save() {
-    if (currentFile.isEmpty()) {
-        currentFile = QFileDialog::getSaveFileName(this, tr("Save"));
+    if (this->currentFile.isEmpty()) {
+        this->currentFile = QFileDialog::getSaveFileName(this, tr("Save"));
     }
 
-    saveToDisk(currentFile);
+    saveToDisk(this->currentFile);
 }
 
 
 void MainWindow::saveas() {
-    currentFile = QFileDialog::getSaveFileName(this, tr("Save"));
-    saveToDisk(currentFile);
+    this->currentFile = QFileDialog::getSaveFileName(this, tr("Save"));
+    saveToDisk(this->currentFile);
 }
 
 
@@ -306,7 +312,8 @@ void MainWindow::saveToDisk(const QString &filename) {
         return;
     }
 
-    this->setWindowTitle(QFileInfo(filename).fileName());
+    this->currentFileName = QFileInfo(filename).fileName();
+    this->setWindowTitle(currentFileName);
     QTextStream out(&file);
     QString text = textEdit->toPlainText();
     out << text;
