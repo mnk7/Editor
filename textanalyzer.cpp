@@ -1,21 +1,54 @@
 #include "textanalyzer.h"
 
 
+/**
+ * @brief TextAnalyzer::adBlocks
+ * @param position
+ * @param count
+ */
 void TextAnalyzer::addBlocks(const int position, const int count) {
     if(static_cast<decltype(dataPerBlock.size())>(position) >= dataPerBlock.size()
             || static_cast<decltype(dataPerBlock.size())>(position) < 0) {
         qWarning("Tried to add textblock beyond range...");
         dataPerBlock.insert(dataPerBlock.end(), count, TextStatistics());
+
+        for(decltype (dataPerBlock.size()) i = dataPerBlock.size() - count; i < dataPerBlock.size(); ++i) {
+            dirtyBlocks.push_back(i);
+        }
+
     } else {
         dataPerBlock.insert(dataPerBlock.begin() + position, count, TextStatistics());
+
+        for(auto &element: dirtyBlocks) {
+            if(element >= position) {
+                element += count;
+            }
+        }
+
+        for(int i = position; i <= position + count; ++i) {
+            dirtyBlocks.push_back(i);
+        }
+
+        for(auto &element: outline) {
+            if(element >= position) {
+                element += count;
+            }
+        }
     }
 }
 
 
+/**
+ * @brief TextAnalyzer::removeBlocks
+ * @param position
+ * @param count
+ */
 void TextAnalyzer::removeBlocks(const int position, const int count) {
     if(static_cast<decltype(dataPerBlock.size())>(count) > dataPerBlock.size()) {
         dataPerBlock.clear();
+        outline.clear();
         wholeTextData = TextStatistics();
+        emit outlineChanged();
         return;
     }
 
@@ -23,18 +56,67 @@ void TextAnalyzer::removeBlocks(const int position, const int count) {
             || static_cast<decltype(dataPerBlock.size())>(position) < 0
             || static_cast<decltype(dataPerBlock.size())>(position + count) > dataPerBlock.size()) {
         qWarning("Tried to remove textblock beyond range...");
+
         dataPerBlock.erase(dataPerBlock.end() - count, dataPerBlock.end());
+
+        std::vector<int> new_outline;
+        for(auto &element: outline) {
+            if(static_cast<decltype(dataPerBlock.size())>(element) < dataPerBlock.size()) {
+                new_outline.push_back(element);
+            }
+        }
+
+        outline = new_outline;
+
+        std::vector<int> new_dirtyBlocks;
+        for(auto &element: dirtyBlocks) {
+            if(static_cast<decltype (dataPerBlock.size())>(element) < dataPerBlock.size()) {
+                new_dirtyBlocks.push_back(element);
+            }
+        }
+
+        dirtyBlocks = new_dirtyBlocks;
     } else {
         for(decltype (dataPerBlock.size()) i = position; i < static_cast<decltype(dataPerBlock.size())>(position + count); ++i) {
             wholeTextData.subtract(dataPerBlock[i]);
         }
 
         dataPerBlock.erase(dataPerBlock.begin() + position, dataPerBlock.begin() + position + count);
+
+        std::vector<int> new_outline;
+        for(auto &element: outline) {
+            if(element < position) {
+                new_outline.push_back(element);
+            } else if(element >= position + count) {
+                new_outline.push_back(element - count);
+            }
+        }
+
+        outline = new_outline;
+
+        std::vector<int> new_dirtyBlocks;
+        for(auto &element: dirtyBlocks) {
+            if(element < position) {
+                new_dirtyBlocks.push_back(element);
+            } else if(element >= position + count) {
+                new_dirtyBlocks.push_back(element - count);
+            }
+        }
+
+        dirtyBlocks = new_dirtyBlocks;
     }
+
+    emit outlineChanged();
 }
 
 
-void TextAnalyzer::updateBlock(const int blockNumber, const QString &text) {
+/**
+ * @brief TextAnalyzer::updateBlock
+ * @param blockNumber
+ * @param text
+ * @param headinglevel
+ */
+void TextAnalyzer::updateBlock(const int blockNumber, const QString &text, const int headinglevel) {
     if(blockNumber < 0 || static_cast<decltype(dataPerBlock.size())>(blockNumber) >= dataPerBlock.size()) {
         return;
     }
@@ -42,9 +124,74 @@ void TextAnalyzer::updateBlock(const int blockNumber, const QString &text) {
     wholeTextData.subtract(dataPerBlock[blockNumber]);
     dataPerBlock[blockNumber] = countWords(text);
     wholeTextData.add(dataPerBlock[blockNumber]);
+
+    dataPerBlock[blockNumber].setHeadingLevel(headinglevel);
+
+    decltype (outline.size()) old_outlineSize = outline.size();
+
+    // remove a heading
+    if(headinglevel == 0) {
+        dataPerBlock[blockNumber].setHeadingText("");
+
+        auto existingHeading = std::find(outline.begin(), outline.end(), blockNumber);
+
+        if(existingHeading != outline.end()) {
+            outline.erase(existingHeading);
+        }
+    } else {
+        // add a heading
+        // ### Heading
+        if(text.startsWith("#")) {
+            dataPerBlock[blockNumber].setHeadingText(text.mid(headinglevel).trimmed());
+        } else {
+            // Heading
+            // ===
+            dataPerBlock[blockNumber].setHeadingText(text);
+        }
+
+        if(std::find(outline.begin(), outline.end(), blockNumber) == outline.end()) {
+            outline.push_back(blockNumber);
+        } else {
+            outlineWaitingForBlocksCleaned = true;
+        }
+    }
+
+    auto existingDirtyBlock = std::find(dirtyBlocks.begin(), dirtyBlocks.end(), blockNumber);
+
+    if(existingDirtyBlock != dirtyBlocks.end()) {
+        dirtyBlocks.erase(existingDirtyBlock);
+    }
+
+    if(old_outlineSize != outline.size()) {
+        outlineWaitingForBlocksCleaned = true;
+    }
+
+    if(dirtyBlocks.empty() && outlineWaitingForBlocksCleaned) {
+        emit outlineChanged();
+        outlineWaitingForBlocksCleaned = false;
+    }
 }
 
 
+/**
+ * @brief TextAnalyzer::getOutline
+ * @return
+ */
+const std::map<int, TextStatistics &> TextAnalyzer::getOutline() {
+    std::map<int, TextStatistics&> ret;
+
+    for(auto element: outline) {
+        ret.insert(std::pair<int, TextStatistics&>(element, dataPerBlock[element]));
+    }
+
+    return ret;
+}
+
+
+/**
+ * @brief TextAnalyzer::analyzeSelection
+ * @param text
+ */
 void TextAnalyzer::analyzeSelection(const QString &text) {
     selectionData.clear();
 
@@ -62,6 +209,11 @@ void TextAnalyzer::analyzeSelection(const QString &text) {
 }
 
 
+/**
+ * @brief TextAnalyzer::countWords
+ * @param text
+ * @return
+ */
 TextStatistics TextAnalyzer::countWords(const QString &text) {
     TextStatistics data;
 

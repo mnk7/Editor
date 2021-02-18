@@ -21,6 +21,7 @@
 #include "textanalyzer.h"
 #include "textstatistics.h"
 #include "statisticslabel.h"
+#include "outlinedock.h"
 #include "finddock.h"
 #include "settingsdock.h"
 #include "settings.h"
@@ -50,6 +51,7 @@ private:
     TextEditor *textEdit;
     TextAnalyzer statistics;
     TextRenderer *textRender;
+    OutlineDock *outlineDock;
     FindDock *findDock;
     SettingsDock *settingsDock;
     Settings settings;

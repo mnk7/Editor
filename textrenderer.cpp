@@ -84,3 +84,23 @@ void TextRenderer::setFontSize(const int fontsize) {
 
     this->setTabStopDistance(this->cursorWidth() * 4);
 }
+
+
+void TextRenderer::scrollToBlock(const int blockNumber) {
+    int position = this->document()->findBlockByNumber(blockNumber).position();
+
+    if(blockNumber < 0) {
+        position = 0;
+    }
+
+    if(blockNumber >= this->document()->blockCount()) {
+        position = this->document()->lastBlock().position();
+    }
+
+    this->moveCursor(QTextCursor::End);
+    QTextCursor cursor = this->textCursor();
+    cursor.setPosition(position);
+    this->setTextCursor(cursor);
+
+    this->ensureCursorVisible();
+}

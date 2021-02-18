@@ -144,6 +144,26 @@ void TextEditor::replaceAllRequested(const QString &text, const QString &replace
 }
 
 
+void TextEditor::scrollToBlock(const int blockNumber) {
+    int position = this->document()->findBlockByNumber(blockNumber).position();
+
+    if(blockNumber < 0) {
+        position = 0;
+    }
+
+    if(blockNumber >= this->blockCount()) {
+        position = this->document()->lastBlock().position();
+    }
+
+    this->moveCursor(QTextCursor::End);
+    QTextCursor cursor = this->textCursor();
+    cursor.setPosition(position);
+    this->setTextCursor(cursor);
+
+    this->ensureCursorVisible();
+}
+
+
 void TextEditor::analyzeWholeText() {
     analyzeTextChange(0, 0, this->document()->characterCount());
 }
@@ -166,7 +186,7 @@ void TextEditor::analyzeTextChange(const int position, const int charsRemoved, c
     }
 
     for(int i = block.blockNumber(); i <= lastChangedBlock; ++i) {
-        statistics->updateBlock(i, block.text());
+        statistics->updateBlock(i, block.text(), block.userState());
         block = block.next();
     }
 

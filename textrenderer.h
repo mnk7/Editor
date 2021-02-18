@@ -2,7 +2,7 @@
 #define TEXTRENDERER_H
 
 #include <QTextEdit>
-#include <QWidget>
+#include <QTextBlock>
 #include <QScrollBar>
 #include <QCommonStyle>
 
@@ -18,6 +18,7 @@ public:
     void resizeEvent(QResizeEvent *event);
     void setFont(const QFont &font);
     void setFontSize(const int fontsize);
+    void scrollToBlock(const int blockNumber);
 
 private:
     int textwidth;

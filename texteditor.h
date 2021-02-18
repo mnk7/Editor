@@ -31,6 +31,8 @@ public:
     void replaceRequested(const QString &text, const QString &replacement);
     void replaceAllRequested(const QString &text, const QString &replacement);
 
+    void scrollToBlock(const int blockNumber);
+
     void analyzeWholeText();
     void analyzeTextChange(const int position, const int charsRemoved, const int charsAdded);
     void analyzeSelection();

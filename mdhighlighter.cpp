@@ -45,7 +45,7 @@ MDHighlighter::MDHighlighter(QTextDocument *document, SpellChecker *spellchecker
 
 
 void MDHighlighter::highlightBlock(const QString &text) {
-    this->setCurrentBlockState(0);
+    currentBlock().setUserState(0);
 
     if(text.size() == 0) {
         return;
@@ -65,6 +65,7 @@ void MDHighlighter::highlightBlock(const QString &text) {
         headerFormat.setFontPointSize(defaultFont.pointSize() * (1 + 0.5 / level));
 
         this->setFormat(0, text.size(), headerFormat);
+        currentBlock().setUserState(level);
         return;
     }
 
@@ -74,14 +75,14 @@ void MDHighlighter::highlightBlock(const QString &text) {
         if(header1RegEx.exactMatch(next.text())) {
             headerFormat.setFontPointSize(defaultFont.pointSize() * (1 + 0.5));
             this->setFormat(0, text.size(), headerFormat);
-            this->setCurrentBlockState(1);
+            currentBlock().setUserState(1);
             return;
         }
 
         if(header2RegEx.exactMatch(next.text())) {
             headerFormat.setFontPointSize(defaultFont.pointSize() * (1 + 0.25));
             this->setFormat(0, text.size(), headerFormat);
-            this->setCurrentBlockState(1);
+            currentBlock().setUserState(2);
             return;
         }
     }
@@ -92,9 +93,15 @@ void MDHighlighter::highlightBlock(const QString &text) {
     }
 
     // lines
-    if(this->previousBlockState() != 1
+    if(this->previousBlockState() == 0
             && (lineStarRegEx.exactMatch(text) || lineDashRegEx.exactMatch(text) || lineUnderScoreRegEx.exactMatch(text))) {
         this->setFormat(0, text.size(), htmlFormat);
+        return;
+    }
+
+    if(this->previousBlockState() > 0) {
+        headerFormat.setFontPointSize(defaultFont.pointSize());
+        this->setFormat(0, text.size(), headerFormat);
         return;
     }
 

@@ -51,8 +51,17 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
                       this->setWindowTitle("*" + this->currentFileName);
                   });
 
+    // OutlineDock
+    outlineDock = new OutlineDock(this, &statistics);
+    this->addDockWidget(Qt::LeftDockWidgetArea, outlineDock);
+    outlineDock->setVisible(false);
+
+    connect(outlineDock, &OutlineDock::showBlockRequested, textEdit, &TextEditor::scrollToBlock);
+    connect(outlineDock, &OutlineDock::showBlockRequested, textRender, &TextRenderer::scrollToBlock);
+
     // FindDock
     findDock = new FindDock(this);
+    this->addDockWidget(Qt::TopDockWidgetArea, findDock);
     connect(findDock, &FindDock::findRequested, textEdit, &TextEditor::findRequested);
     connect(findDock, &FindDock::replaceRequested, textEdit, &TextEditor::replaceRequested);
     connect(findDock, &FindDock::replaceAllRequested, textEdit, &TextEditor::replaceAllRequested);
@@ -92,9 +101,7 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     findAction = new QAction(this);
     findAction->setShortcut(QKeySequence::Find);
     connect(findAction, &QAction::triggered,
-            this, [=]() {
-                      findDock->changeVisibility(!findDock->isVisible());
-                  });
+            this, [=]() {findDock->changeVisibility(!findDock->isVisible());});
     toolbar->addAction(findAction);
 
     undoAction = new QAction(this);
@@ -113,9 +120,7 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
 
     optionsAction = new QAction(this);
     connect(optionsAction, &QAction::triggered,
-            this, [=]() {
-                      settingsDock->changeVisibility(!settingsDock->isVisible());
-                  });
+            this, [=]() {settingsDock->changeVisibility(!settingsDock->isVisible());});
     toolbar->addAction(optionsAction);
 
     this->addToolBar(toolbar);
@@ -132,6 +137,7 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     connect(settingsDock, &SettingsDock::languageChangeRequested, this, &MainWindow::selectLanguage);
     connect(settingsDock, &SettingsDock::lightThemeRequested, this, &MainWindow::setLightTheme);
     connect(settingsDock, &SettingsDock::darkThemeRequested, this, &MainWindow::setDarkTheme);
+    connect(settingsDock, &SettingsDock::showOutlineRequested, this, [=](bool visible) {outlineDock->changeVisibility(visible);});
     connect(settingsDock, &SettingsDock::renderTextRequested,
             this, [=] (const bool render) {
                        if(render) {

@@ -173,6 +173,10 @@
         <source>preview Markdown</source>
         <translation>preview Markdown</translation>
     </message>
+    <message>
+        <source>show outline</source>
+        <translation>show outline</translation>
+    </message>
 </context>
 <context>
     <name>StatisticsLabel</name>

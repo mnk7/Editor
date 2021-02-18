@@ -54,6 +54,12 @@ SettingsDock > QWidget {
     border-color: #FFFFFF #FFFFFF #FFFFFF #000000;
 }
 
+OutlineDock > QWidget {
+    border-style: solid;
+    border-width: 1px;
+    border-color: #FFFFFF #FFFFFF #FFFFFF #FFFFFF;
+}
+
 QScrollBar:vertical {
     width: 10px;
     border-style: none;

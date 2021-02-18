@@ -27,6 +27,7 @@ signals:
     void lightThemeRequested();
     void darkThemeRequested();
     void languageChangeRequested(QString);
+    void showOutlineRequested(bool);
     void useSpellCheckerRequested(bool);
     void renderTextRequested(bool);
     void fontChangeRequested(const QFont);
@@ -55,6 +56,8 @@ private:
     QScrollArea *scrollArea;
 
     QCheckBox *useSpellCheckerCheck;
+
+    QCheckBox *outlineCheck;
 
     QCheckBox *renderTextCheck;
 
