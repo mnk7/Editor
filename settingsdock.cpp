@@ -9,6 +9,7 @@ SettingsDock::SettingsDock(QWidget *parent, Settings *settings)
     this->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Minimum);
     this->setFloating(false);
     this->setFeatures(QDockWidget::NoDockWidgetFeatures);
+    this->setMinimumWidth(300);
 
     appearanceAnimation = new QPropertyAnimation(this, "geometry");
     appearanceAnimation->setDuration(100);

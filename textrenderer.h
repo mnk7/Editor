@@ -10,7 +10,7 @@ class TextRenderer : public QTextEdit
 {
     Q_OBJECT
 public:
-    TextRenderer(QWidget *parent);
+    TextRenderer(QWidget *parent, QWidget *mainWidget);
 
     int setTextWidth(const int textwidth);
     void limitTextWidth(const bool limittextwidth);
@@ -23,6 +23,8 @@ public:
 private:
     int textwidth;
     bool limittextwidth;
+
+    QWidget *mainWidget;
 };
 
 #endif // TEXTRENDERER_H

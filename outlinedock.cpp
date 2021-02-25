@@ -10,6 +10,7 @@ OutlineDock::OutlineDock(QWidget *parent, TextAnalyzer *statistics)
     this->setFloating(false);
     this->setFeatures(QDockWidget::NoDockWidgetFeatures);
     this->setMinimumWidth(250);
+    this->setMaximumWidth(250);
 
     appearanceAnimation = new QPropertyAnimation(this, "geometry");
     appearanceAnimation->setDuration(100);

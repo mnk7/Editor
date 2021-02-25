@@ -15,7 +15,7 @@ class TextEditor : public QPlainTextEdit
     Q_OBJECT
 
 public:
-    TextEditor(QWidget *parent, TextAnalyzer *statistics, SpellChecker *spellchecker);
+    TextEditor(QWidget *parent, QWidget *mainWidget, TextAnalyzer *statistics, SpellChecker *spellchecker);
 
     void setSpellChecker(SpellChecker *spellchecker) {highlighter->setSpellChecker(spellchecker); highlighter->rehighlight();}
     void setUseSpellChecker(const bool useSpellChecker) {highlighter->setUseSpellChecker(useSpellChecker); highlighter->rehighlight();}
@@ -43,6 +43,8 @@ signals:
 private:
     int textwidth;
     bool limittextwidth;
+
+    QWidget *mainWidget;
 
     TextAnalyzer *statistics;
 

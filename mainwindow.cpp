@@ -3,7 +3,7 @@
 MainWindow::MainWindow(QString currentFile, QWidget *parent)
     : QMainWindow(parent)
 {
-    this->setMinimumSize(500, 400);
+    this->setMinimumSize(600, 400);
     this->setUnifiedTitleAndToolBarOnMac(true);
     //this->grabGesture(Qt::PanGesture);
 
@@ -39,9 +39,9 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
 
     // the central widget that displays either the textEdit or the textRender
     stackedCentralWidget = new QStackedWidget(this);
-    textEdit = new TextEditor(stackedCentralWidget, &statistics, spellchecker);
+    textEdit = new TextEditor(stackedCentralWidget, this, &statistics, spellchecker);
     stackedCentralWidget->addWidget(textEdit);
-    textRender = new TextRenderer(stackedCentralWidget);
+    textRender = new TextRenderer(stackedCentralWidget, this);
     stackedCentralWidget->addWidget(textRender);
     stackedCentralWidget->setCurrentWidget(textEdit);
     this->setCentralWidget(stackedCentralWidget);
@@ -146,6 +146,8 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
                            textRender->setTextWidth(settings.getTextwidth());
                            stackedCentralWidget->setCurrentWidget(textRender);
                        } else {
+                           textEdit->setGeometry(textRender->geometry());
+                           textEdit->setTextWidth(settings.getTextwidth());
                            stackedCentralWidget->setCurrentWidget(textEdit);
                    }});
     connect(settingsDock, &SettingsDock::setEnableFixedTextwidthRequested,
@@ -297,7 +299,11 @@ void MainWindow::open() {
 
 void MainWindow::save() {
     if (this->currentFile.isEmpty()) {
-        this->currentFile = QFileDialog::getSaveFileName(this, tr("Save"));
+        this->currentFile = QFileDialog::getSaveFileName(this, tr("Save"), "", "Markdown files (*.md *.mkd *.MD *.MKD)");
+
+        if(!(this->currentFile.endsWith(".md", Qt::CaseInsensitive) || this->currentFile.endsWith(".mkd", Qt::CaseInsensitive))) {
+            this->currentFileName = this->currentFile.append(".md");
+        }
     }
 
     saveToDisk(this->currentFile);
@@ -305,12 +311,17 @@ void MainWindow::save() {
 
 
 void MainWindow::saveas() {
-    this->currentFile = QFileDialog::getSaveFileName(this, tr("Save"));
+    this->currentFile = QFileDialog::getSaveFileName(this, tr("Save"), "", "Markdown files (*.md *.mkd *.MD *.MKD)");
+
+    if(!(this->currentFile.endsWith(".md", Qt::CaseInsensitive) || this->currentFile.endsWith(".mkd", Qt::CaseInsensitive))) {
+        this->currentFileName = this->currentFile.append(".md");
+    }
+
     saveToDisk(this->currentFile);
 }
 
 
-void MainWindow::saveToDisk(const QString &filename) {
+void MainWindow::saveToDisk(const QString &filename) {    
     QFile file(filename);
 
     if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
@@ -360,7 +371,7 @@ void MainWindow::setLightTheme() {
     style.open(QFile::ReadOnly);
     this->setStyleSheet(style.readAll());
 
-    settings.setUseAutosave(true);
+    settings.setUseLightTheme(true);
 }
 
 

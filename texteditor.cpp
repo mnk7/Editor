@@ -1,8 +1,10 @@
 #include "texteditor.h"
 
-TextEditor::TextEditor(QWidget *parent, TextAnalyzer *statistics, SpellChecker *spellchecker)
+TextEditor::TextEditor(QWidget *parent, QWidget *mainWidget, TextAnalyzer *statistics, SpellChecker *spellchecker)
     : QPlainTextEdit(parent)
 {
+    this->mainWidget = mainWidget;
+
     textwidth = 80;
     limittextwidth = true;
     this->statistics = statistics;
@@ -32,24 +34,48 @@ TextEditor::TextEditor(QWidget *parent, TextAnalyzer *statistics, SpellChecker *
 }
 
 
+/**
+ * @brief Sets the margins of the contents so that textwidth characters are shown.
+ * @param textwidth
+ * @return
+ */
 int TextEditor::setTextWidth(const int textwidth) {
-    int margin = 0;
+    int leftMargin = 0;
+    int rightMargin = 0;
+
     if(limittextwidth) {
         this->textwidth = textwidth;
         if(textwidth  < 10) {
             this->textwidth = 10;
         }
 
-        int textwidth_pixels = this->fontMetrics().horizontalAdvance(QString(this->textwidth, 'X'));
-        // add the -1 to avoid rounding errors making the line too short
-        margin = (this->width() - textwidth_pixels) / 2;
+        int globalWidth = this->mainWidget->width();
+        int globalX = this->mapToGlobal(QPoint(0, 0)).x();
 
-        if(margin < 0) {
-            margin = 0;
+        int textwidthPixels = this->fontMetrics().horizontalAdvance(QString(this->textwidth, 'X'));
+
+        if(textwidthPixels < this->width()) {
+            int globalMargin = (globalWidth - textwidthPixels) / 2;
+
+            leftMargin = globalMargin - globalX;
+
+            if(leftMargin < 0) {
+                leftMargin = 0;
+            }
+
+            rightMargin = globalMargin - (globalWidth - globalX - this->width());
+
+            if(rightMargin < 0) {
+                rightMargin = 0;
+            }
+
+            if(this->width() < textwidthPixels + leftMargin + rightMargin) {
+                rightMargin = this->width() - textwidthPixels - leftMargin;
+            }
         }
     }
 
-    this->setViewportMargins(margin, 0, margin, 0);
+    this->setViewportMargins(leftMargin, 0, rightMargin, 0);
 
     return this->textwidth;
 }
