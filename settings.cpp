@@ -27,6 +27,7 @@ void Settings::writeSettings() {
     settings.setValue("use_spellchecker", useSpellChecker);
     settings.setValue("use_light_theme", useLightTheme);
     settings.setValue("limit_textwidth", limitTextwidth);
+    settings.setValue("show_outline", showOutline);
     settings.setValue("font", font);
     settings.setValue("fontsize", fontsize);
     settings.setValue("textwidth", textwidth);
@@ -49,6 +50,7 @@ void Settings::readSettings() {
     useLightTheme = settings.value("use_light_theme", useLightTheme).toBool();
     textwidth = settings.value("textwidth", textwidth).toInt();
     limitTextwidth = settings.value("limit_textwidth", limitTextwidth).toBool();
+    showOutline = settings.value("show_outline", showOutline).toBool();
     QVariant fontvariant = settings.value("font", font);
     font = fontvariant.value<QFont>();
     fontsize = settings.value("fontsize", fontsize).toInt();
@@ -144,6 +146,15 @@ bool Settings::getLimitTextwidth() const
 void Settings::setLimitTextwidth(bool value)
 {
     limitTextwidth = value;
+}
+
+bool Settings::getShowOutline() const
+{
+    return showOutline;
+}
+
+void Settings::setShowOutline(bool value) {
+    showOutline = value;
 }
 
 QFont Settings::getFont() const

@@ -7,7 +7,7 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     this->setUnifiedTitleAndToolBarOnMac(true);
     //this->grabGesture(Qt::PanGesture);
 
-    this->currentFile = currentFile;
+    this->currentFile.setFileName(currentFile);
 
     autosaveTimer = new QTimer(this);
     connect(autosaveTimer, &QTimer::timeout, this, &MainWindow::save);
@@ -137,7 +137,11 @@ MainWindow::MainWindow(QString currentFile, QWidget *parent)
     connect(settingsDock, &SettingsDock::languageChangeRequested, this, &MainWindow::selectLanguage);
     connect(settingsDock, &SettingsDock::lightThemeRequested, this, &MainWindow::setLightTheme);
     connect(settingsDock, &SettingsDock::darkThemeRequested, this, &MainWindow::setDarkTheme);
-    connect(settingsDock, &SettingsDock::showOutlineRequested, this, [=](bool visible) {outlineDock->changeVisibility(visible);});
+    connect(settingsDock, &SettingsDock::showOutlineRequested,
+            this, [=](bool visible) {
+                       settings.setShowOutline(visible);
+                       outlineDock->changeVisibility(visible);
+                   });
     connect(settingsDock, &SettingsDock::renderTextRequested,
             this, [=] (const bool render) {
                        if(render) {
@@ -251,6 +255,8 @@ void MainWindow::loadSettings() {
     settings.setTextwidth(textEdit->setTextWidth(settings.getTextwidth()));
     textRender->setTextWidth(settings.getTextwidth());
 
+    outlineDock->setVisible(settings.getShowOutline());
+
     textEdit->limitTextWidth(settings.getLimitTextwidth());
     textRender->limitTextWidth(settings.getLimitTextwidth());
 
@@ -271,71 +277,87 @@ void MainWindow::loadSettings() {
 
 
 void MainWindow::open(const QString &filename) {
-    QFile file(filename);
+    if(currentFile.isOpen()) {
+        currentFile.close();
+    }
 
-    if (!file.open(QIODevice::ReadOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("Warning"), tr("Cannot open file: ") + file.errorString());
+    currentFile.setFileName(filename);
+
+    if (!currentFile.open(QIODevice::ReadWrite | QFile::Text)) {
+        QMessageBox::warning(this, tr("Warning"), tr("Cannot open file: ") + currentFile.errorString());
         return;
     }
 
     this->currentFileName = QFileInfo(currentFile).fileName();
     this->setWindowTitle(currentFileName);
-    QTextStream in(&file);
+    QTextStream in(&currentFile);
     textEdit->setPlainText(in.readAll());
     textRender->setMarkdown(textEdit->toPlainText());
-
-    file.close();
-
-    this->currentFile = filename;
 }
 
 
 void MainWindow::open() {
-    currentFile = QFileDialog::getOpenFileName(this, tr("Open"), "", "Markdown files (*.md *.mkd *.MD *.MKD)");
+    QString currentFile = QFileDialog::getOpenFileName(this, tr("Open"), "", "Markdown files (*.md *.mkd *.MD *.MKD)");
 
     open(currentFile);
 }
 
 
 void MainWindow::save() {
-    if (this->currentFile.isEmpty()) {
-        this->currentFile = QFileDialog::getSaveFileName(this, tr("Save"), "", "Markdown files (*.md *.mkd *.MD *.MKD)");
+    QString filename = this->currentFile.fileName();
 
-        if(!(this->currentFile.endsWith(".md", Qt::CaseInsensitive) || this->currentFile.endsWith(".mkd", Qt::CaseInsensitive))) {
-            this->currentFileName = this->currentFile.append(".md");
+    if (!this->currentFile.isOpen()) {
+        filename = QFileDialog::getSaveFileName(this, tr("Save"), "", "Markdown files (*.md *.mkd *.MD *.MKD)");
+
+        if(!(filename.endsWith(".md", Qt::CaseInsensitive) || filename.endsWith(".mkd", Qt::CaseInsensitive))) {
+            filename = filename.append(".md");
         }
     }
 
-    saveToDisk(this->currentFile);
+    saveToDisk(filename);
 }
 
 
 void MainWindow::saveas() {
-    this->currentFile = QFileDialog::getSaveFileName(this, tr("Save"), "", "Markdown files (*.md *.mkd *.MD *.MKD)");
+    QString filename = QFileDialog::getSaveFileName(this, tr("Save"), "", "Markdown files (*.md *.mkd *.MD *.MKD)");
 
-    if(!(this->currentFile.endsWith(".md", Qt::CaseInsensitive) || this->currentFile.endsWith(".mkd", Qt::CaseInsensitive))) {
-        this->currentFileName = this->currentFile.append(".md");
+    if(!(filename.endsWith(".md", Qt::CaseInsensitive) || filename.endsWith(".mkd", Qt::CaseInsensitive))) {
+        filename = filename.append(".md");
     }
 
-    saveToDisk(this->currentFile);
+    saveToDisk(filename);
 }
 
 
-void MainWindow::saveToDisk(const QString &filename) {    
-    QFile file(filename);
+void MainWindow::saveToDisk(const QString &filename) {
+    if(filename != currentFile.fileName()) {
+        if(currentFile.isOpen()) {
+            currentFile.close();
+        }
 
-    if (!file.open(QIODevice::WriteOnly | QFile::Text)) {
-        QMessageBox::warning(this, tr("Warning"), tr("Cannot save file: ") + file.errorString());
-        return;
+        currentFile.setFileName(filename);
     }
 
-    this->currentFileName = QFileInfo(filename).fileName();
-    this->setWindowTitle(currentFileName);
-    QTextStream out(&file);
+    if(!currentFile.isOpen()) {
+        if (!currentFile.open(QIODevice::ReadWrite | QFile::Text)) {
+            QMessageBox::warning(this, tr("Warning"), tr("Cannot save file: ") + currentFile.errorString());
+            return;
+        }
+    }
+
+    currentFile.resize(0);
+    QTextStream out(&currentFile);
     QString text = textEdit->toPlainText();
     out << text;
-    file.flush();
-    file.close();
+    currentFile.flush();
+
+    this->currentFileName = QFileInfo(filename).fileName();
+
+    if(!currentFile.error()) {
+        this->setWindowTitle(currentFileName);
+    } else {
+        this->setWindowTitle("*" + this->currentFileName);
+    }
 }
 
 
@@ -376,6 +398,7 @@ void MainWindow::setLightTheme() {
 
 
 MainWindow::~MainWindow() {
+    currentFile.close();
     delete spellchecker;
 }
 

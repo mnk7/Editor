@@ -34,6 +34,9 @@ public:
     bool getLimitTextwidth() const;
     void setLimitTextwidth(bool value);
 
+    bool getShowOutline() const;
+    void setShowOutline(bool value);
+
     QFont getFont() const;
     void setFont(const QFont &value);
 
@@ -80,6 +83,7 @@ private:
     bool useSpellChecker;
     bool useLightTheme;
     bool limitTextwidth;
+    bool showOutline;
     QFont font;
     int fontsize;
     int textwidth;

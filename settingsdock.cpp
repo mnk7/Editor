@@ -92,8 +92,9 @@ SettingsDock::SettingsDock(QWidget *parent, Settings *settings)
     // show outline
     outlineCheck = new QCheckBox();
     outlineCheck->setChecked(false);
+    outlineCheck->setChecked(settings->getShowOutline());
     connect(outlineCheck, &QCheckBox::clicked,
-            this, [=](bool checked) {emit showOutlineRequested(checked);});
+            this, [=](bool checked) {emit showOutlineRequested(checked); emit settingsChangeRequested();});
     gridLayout->addWidget(outlineCheck, 3, 0, 1, 4);
 
 

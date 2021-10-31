@@ -4,9 +4,8 @@
 
 int main(int argc, char *argv[])
 {
-#ifdef Q_OS_ANDROID
     QApplication::setAttribute(Qt::AA_EnableHighDpiScaling);
-#endif
+    qputenv("QT_AUTO_SCREEN_SCALE_FACTOR", "1");
 
     QApplication a(argc, argv);
     a.setWindowIcon(QIcon(":/Icon.png"));

@@ -40,7 +40,7 @@ protected:
     void changeEvent(QEvent *event);
 
 private:
-    QString currentFile;
+    QFile currentFile;
     QString currentFileName;
     QTemporaryDir temporaryDictDir;
 
